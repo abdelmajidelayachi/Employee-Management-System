@@ -1,0 +1,200 @@
+package io.hahnsoftware.emp.ui;
+
+import net.miginfocom.swing.MigLayout;
+import io.hahnsoftware.emp.dto.AuditDAO;
+import io.hahnsoftware.emp.model.AuditLog;
+import net.sourceforge.jdatepicker.impl.JDatePanelImpl;
+import net.sourceforge.jdatepicker.impl.JDatePickerImpl;
+import net.sourceforge.jdatepicker.impl.UtilDateModel;
+
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+
+public class AuditLogPanel extends JPanel {
+    private JTable auditTable;
+    private DefaultTableModel tableModel;
+    private AuditDAO auditDAO;
+    private JComboBox<String> entityFilter;
+    private JComboBox<String> actionFilter;
+    private JDatePickerImpl startDatePicker;
+    private JDatePickerImpl endDatePicker;
+    
+    public AuditLogPanel(JComboBox<String> entityFilter, JComboBox<String> actionFilter, JDatePickerImpl startDatePicker, JDatePickerImpl endDatePicker) {
+        this.entityFilter = entityFilter;
+        this.actionFilter = actionFilter;
+        this.startDatePicker = startDatePicker;
+        this.endDatePicker = endDatePicker;
+        setLayout(new MigLayout("fill, insets 20", "[grow]", "[]10[grow]"));
+        
+        try {
+            auditDAO = new AuditDAO();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to initialize AuditDAO", e);
+        }
+        
+        // Create filter panel
+        JPanel filterPanel = createFilterPanel();
+        
+        // Create table
+        String[] columns = {"Timestamp", "Action", "Entity Type", "Entity ID", "User", "Changes"};
+        tableModel = new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        
+        auditTable = new JTable(tableModel);
+        auditTable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
+        
+        // Set column widths
+        auditTable.getColumnModel().getColumn(0).setPreferredWidth(150); // Timestamp
+        auditTable.getColumnModel().getColumn(1).setPreferredWidth(80);  // Action
+        auditTable.getColumnModel().getColumn(2).setPreferredWidth(100); // Entity Type
+        auditTable.getColumnModel().getColumn(3).setPreferredWidth(80);  // Entity ID
+        auditTable.getColumnModel().getColumn(4).setPreferredWidth(100); // User
+        auditTable.getColumnModel().getColumn(5).setPreferredWidth(300); // Changes
+        
+        // Add components
+        add(filterPanel, "growx, wrap");
+        add(new JScrollPane(auditTable), "grow");
+        
+        // Initial load
+        refreshData();
+    }
+
+    public AuditLogPanel() {
+
+    }
+
+    private JPanel createFilterPanel() {
+        JPanel panel = new JPanel(new MigLayout("insets 0", "[]5[]5[]5[]push[]", "[]"));
+        
+        // Entity filter
+        entityFilter = new JComboBox<>(new String[]{"All Entities", "EMPLOYEE", "USER", "DEPARTMENT"});
+        entityFilter.addActionListener(e -> refreshData());
+        
+        // Action filter
+        actionFilter = new JComboBox<>(new String[]{"All Actions", "CREATE", "UPDATE", "DELETE"});
+        actionFilter.addActionListener(e -> refreshData());
+        
+        // Date pickers
+        UtilDateModel startModel = new UtilDateModel();
+        UtilDateModel endModel = new UtilDateModel();
+        Properties properties = new Properties();
+        properties.put("text.today", "Today");
+        
+        JDatePanelImpl startDatePanel = new JDatePanelImpl(startModel);
+        JDatePanelImpl endDatePanel = new JDatePanelImpl(endModel);
+        
+        startDatePicker = new JDatePickerImpl(startDatePanel, new DateLabelFormatter());
+        endDatePicker = new JDatePickerImpl(endDatePanel, new DateLabelFormatter());
+        
+        // Refresh button
+        JButton refreshButton = new JButton("Refresh");
+        refreshButton.addActionListener(e -> refreshData());
+        
+        // Add components
+        panel.add(new JLabel("Entity:"));
+        panel.add(entityFilter);
+        panel.add(new JLabel("Action:"));
+        panel.add(actionFilter);
+        panel.add(new JLabel("Start Date:"));
+        panel.add(startDatePicker);
+        panel.add(new JLabel("End Date:"));
+        panel.add(endDatePicker);
+        panel.add(refreshButton, "right");
+        
+        return panel;
+    }
+    
+    void refreshData() {
+        try {
+            // Get filter values
+            String entity = entityFilter.getSelectedItem().toString();
+            String action = actionFilter.getSelectedItem().toString();
+            LocalDate startDate = null;
+            LocalDate endDate = null;
+            
+            if (startDatePicker.getModel().getValue() != null) {
+                startDate = ((java.util.Date) startDatePicker.getModel().getValue())
+                    .toInstant()
+                    .atZone(java.time.ZoneId.systemDefault())
+                    .toLocalDate();
+            }
+            
+            if (endDatePicker.getModel().getValue() != null) {
+                endDate = ((java.util.Date) endDatePicker.getModel().getValue())
+                    .toInstant()
+                    .atZone(java.time.ZoneId.systemDefault())
+                    .toLocalDate();
+            }
+            
+            // Apply filters
+//            List<AuditLog> logs = auditDAO.getFilteredLogs(
+//                entity.equals("All Entities") ? null : entity,
+//                action.equals("All Actions") ? null : action,
+//                startDate,
+//                endDate
+//            );
+
+            List<AuditLog> logs = new ArrayList<>();
+
+            // Update table
+            tableModel.setRowCount(0);
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+            for (AuditLog log : logs) {
+                Object[] row = {
+                        formatter.format(log.getTimestamp()),
+                        log.getAction(),
+                        log.getEntityType(),
+                        log.getEntityId(),
+                        log.getUser().getUsername(),
+                        log.getChanges()
+                };
+                tableModel.addRow(row);
+            }
+        } catch (Exception e) {
+            showError("Error loading audit logs", e);
+        }
+    }
+
+    private void showError(String message, Exception e) {
+        JOptionPane.showMessageDialog(this,
+                message + ": " + e.getMessage(),
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
+    }
+
+    // Custom date formatter for JDatePicker
+    private class DateLabelFormatter extends JFormattedTextField.AbstractFormatter {
+        private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        @Override
+        public Object stringToValue(String text) throws java.text.ParseException {
+            if (text == null || text.trim().isEmpty()) {
+                return null;
+            }
+            return LocalDate.parse(text, dateFormatter);
+        }
+
+        @Override
+        public String valueToString(Object value) {
+            if (value == null) {
+                return "";
+            }
+            if (value instanceof LocalDate) {
+                return dateFormatter.format((LocalDate) value);
+            }
+            return value.toString();
+        }
+    }
+}
