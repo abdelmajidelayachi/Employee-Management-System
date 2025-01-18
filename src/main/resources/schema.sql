@@ -11,6 +11,9 @@ CREATE TABLE employees (
                            id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
                            employee_id VARCHAR2(20) UNIQUE NOT NULL,
                            full_name VARCHAR2(100) NOT NULL,
+                           username VARCHAR2(50) UNIQUE NOT NULL,
+                           role VARCHAR2(20) NOT NULL,
+                           password_hash VARCHAR2(256) NOT NULL,
                            job_title VARCHAR2(100) NOT NULL,
                            department_id NUMBER REFERENCES departments(id),
                            hire_date DATE NOT NULL,
@@ -22,15 +25,7 @@ CREATE TABLE employees (
                            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Users Table
-CREATE TABLE users (
-                       id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-                       username VARCHAR2(50) UNIQUE NOT NULL,
-                       password_hash VARCHAR2(256) NOT NULL,
-                       role VARCHAR2(20) NOT NULL,
-                       department_id NUMBER REFERENCES departments(id),
-                       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+
 
 -- Audit Log Table
 CREATE TABLE audit_log (
@@ -38,7 +33,7 @@ CREATE TABLE audit_log (
                            action VARCHAR2(50) NOT NULL,
                            entity_type VARCHAR2(50) NOT NULL,
                            entity_id NUMBER NOT NULL,
-                           user_id NUMBER REFERENCES users(id),
+                           employee_id NUMBER REFERENCES employees(id),
                            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                            changes CLOB
 );

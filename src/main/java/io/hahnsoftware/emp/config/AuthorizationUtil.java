@@ -11,42 +11,42 @@ public class AuthorizationUtil {
                user.getRole() == UserRole.MANAGER;
     }
     
-    public static boolean canViewEmployee(User user, Employee employee) {
+    public static boolean canViewEmployee(Employee currentEmployee, Employee employee) {
         // Admins and HR can view all employees
-        if (user.getRole() == UserRole.ADMINISTRATOR ||
-            user.getRole() == UserRole.HR_PERSONNEL) {
+        if (currentEmployee.getRole() == UserRole.ADMINISTRATOR ||
+                currentEmployee.getRole() == UserRole.HR_PERSONNEL) {
             return true;
         }
         
         // Managers can only view employees in their department
-        if (user.getRole() == UserRole.MANAGER) {
-            return employee.getDepartment().getId().equals(user.getDepartment().getId());
+        if (currentEmployee.getRole() == UserRole.MANAGER) {
+            return employee.getDepartment().getId().equals(currentEmployee.getDepartment().getId());
         }
         
         return false;
     }
     
-    public static boolean canCreateEmployee(User user) {
+    public static boolean canCreateEmployee(Employee user) {
         return user.getRole() == UserRole.HR_PERSONNEL || 
                user.getRole() == UserRole.ADMINISTRATOR;
     }
     
-    public static boolean canUpdateEmployee(User user, Employee employee) {
+    public static boolean canUpdateEmployee(Employee currentEmployee, Employee employee) {
         // Admins and HR can update all employees
-        if (user.getRole() == UserRole.ADMINISTRATOR || 
-            user.getRole() == UserRole.HR_PERSONNEL) {
+        if (currentEmployee.getRole() == UserRole.ADMINISTRATOR ||
+                currentEmployee.getRole() == UserRole.HR_PERSONNEL) {
             return true;
         }
         
         // Managers can only update employees in their department
-        if (user.getRole() == UserRole.MANAGER) {
-            return employee.getDepartment().getId().equals(user.getDepartment().getId());
+        if (currentEmployee.getRole() == UserRole.MANAGER) {
+            return employee.getDepartment().getId().equals(currentEmployee.getDepartment().getId());
         }
         
         return false;
     }
     
-    public static boolean canDeleteEmployee(User user) {
+    public static boolean canDeleteEmployee(Employee user) {
         return user.getRole() == UserRole.HR_PERSONNEL || 
                user.getRole() == UserRole.ADMINISTRATOR;
     }

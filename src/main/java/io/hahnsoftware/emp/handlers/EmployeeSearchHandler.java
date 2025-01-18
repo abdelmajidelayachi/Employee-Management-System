@@ -36,7 +36,7 @@ public class EmployeeSearchHandler implements HttpHandler {
     public void handle(HttpExchange exchange) throws IOException {
         try {
             // Check authentication
-            User currentUser = AuthenticationUtil.authenticate(exchange);
+            Employee currentUser = AuthenticationUtil.authenticate(exchange);
             if (currentUser == null) {
                 sendResponse(exchange, 401, "Unauthorized");
                 return;

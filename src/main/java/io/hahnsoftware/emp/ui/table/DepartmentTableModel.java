@@ -1,10 +1,12 @@
 package io.hahnsoftware.emp.ui.table;
 
+import io.hahnsoftware.emp.dto.DepartmentDAO;
+import io.hahnsoftware.emp.dto.EmployeeDAO;
 import io.hahnsoftware.emp.model.Department;
-import io.hahnsoftware.emp.model.Employee;
 import io.hahnsoftware.emp.ui.StyleConstants;
 
 import javax.swing.table.AbstractTableModel;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -98,6 +100,12 @@ public class DepartmentTableModel extends AbstractTableModel implements StyleCon
     // Search and Sort functionality
     public void filterByName(String searchTerm) {
         if (searchTerm == null || searchTerm.trim().isEmpty()) {
+            try {
+                DepartmentDAO departmentDAO = new DepartmentDAO(new EmployeeDAO());
+                setData(departmentDAO.findAll());
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
             return;
         }
 
@@ -105,14 +113,17 @@ public class DepartmentTableModel extends AbstractTableModel implements StyleCon
         String term = searchTerm.toLowerCase().trim();
 
         for (Department dept : departments) {
-            if (dept.getName().toLowerCase().contains(term)) {
+            boolean matchesName = dept.getName().toLowerCase().contains(term);
+            boolean matchesManager = dept.getManager() != null &&
+                    dept.getManager().getFullName().toLowerCase().contains(term);
+
+            if (matchesName || matchesManager) {
                 filtered.add(dept);
             }
         }
 
         setData(filtered);
     }
-
     public void sortByColumn(int column, boolean ascending) {
         departments.sort((d1, d2) -> {
             int result;

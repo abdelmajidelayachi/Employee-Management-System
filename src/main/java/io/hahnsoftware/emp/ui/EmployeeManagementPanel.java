@@ -21,7 +21,7 @@ import java.text.MessageFormat;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class EmployeeListPanel extends JPanel implements StyleConstants{
+public class EmployeeManagementPanel extends JPanel implements StyleConstants{
 
     private final JTable employeeTable;
     private final DefaultTableModel tableModel;
@@ -34,7 +34,7 @@ public class EmployeeListPanel extends JPanel implements StyleConstants{
     private JDatePickerImpl toDatePicker;
 
     // Update the constructor's table setup part
-    public EmployeeListPanel(Runnable onAddNew) {
+    public EmployeeManagementPanel(Runnable onAddNew) {
         this.onAddNew = onAddNew;
         setLayout(new MigLayout("fill, insets 20", "[grow]", "[]15[]10[grow]"));
         setBackground(StyleConstants.BG_SECONDARY);
@@ -384,7 +384,10 @@ public class EmployeeListPanel extends JPanel implements StyleConstants{
                     if (!searchText.isEmpty()) {
                         return employee.getFullName().toLowerCase().contains(searchText) ||
                                 employee.getEmployeeId().toLowerCase().contains(searchText) ||
-                                employee.getDepartment().getName().toLowerCase().contains(searchText);
+                                employee.getDepartment().getName().toLowerCase().contains(searchText)||
+                                employee.getRole().name().toLowerCase().contains(searchText)||
+                                employee.getUsername().toLowerCase().contains(searchText)||
+                                employee.getJobTitle().toLowerCase().contains(searchText);
                     }
                     return true;
                 })

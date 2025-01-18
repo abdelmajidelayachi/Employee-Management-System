@@ -1,26 +1,25 @@
 package io.hahnsoftware.emp.config;
 
 import com.sun.net.httpserver.HttpExchange;
-import io.hahnsoftware.emp.dto.UserDAO;
+import io.hahnsoftware.emp.dto.EmployeeDAO;
 import io.hahnsoftware.emp.model.Employee;
 import io.hahnsoftware.emp.model.User;
-import io.hahnsoftware.emp.model.UserRole;
 
 import java.util.Base64;
 import java.sql.SQLException;
 
 public class AuthenticationUtil {
-    private static final UserDAO userDAO;
+    private static final EmployeeDAO employeeDAO;
     
     static {
         try {
-            userDAO = new UserDAO();
+            employeeDAO = new EmployeeDAO();
         } catch (SQLException e) {
             throw new RuntimeException("Failed to initialize UserDAO", e);
         }
     }
     
-    public static User authenticate(HttpExchange exchange) {
+    public static Employee authenticate(HttpExchange exchange) {
         // Get Authorization header
         String authHeader = exchange.getRequestHeaders().getFirst("Authorization");
         if (authHeader == null || !authHeader.startsWith("Basic ")) {
@@ -41,7 +40,7 @@ public class AuthenticationUtil {
             String password = values[1];
             
             // Validate credentials
-            return userDAO.validateCredentials(username, password);
+            return employeeDAO.validateCredentials(username, password);
             
         } catch (Exception e) {
             e.printStackTrace();

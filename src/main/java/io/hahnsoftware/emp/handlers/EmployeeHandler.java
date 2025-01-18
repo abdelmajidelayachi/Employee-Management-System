@@ -41,7 +41,7 @@ public class EmployeeHandler implements HttpHandler {
     @Override
     public void handle(HttpExchange exchange) throws IOException {
         try {
-            User currentUser = AuthenticationUtil.authenticate(exchange);
+            Employee currentUser = AuthenticationUtil.authenticate(exchange);
 //            if (currentUser == null) {
 //                sendResponse(exchange, 401, "Unauthorized");
 //                return;
@@ -83,7 +83,7 @@ public class EmployeeHandler implements HttpHandler {
                     @ApiResponse(responseCode = "404", description = "Employee not found")
             }
     )
-    private void handleGet(HttpExchange exchange, User currentUser) throws IOException, SQLException {
+    private void handleGet(HttpExchange exchange, Employee currentUser) throws IOException, SQLException {
         String path = exchange.getRequestURI().getPath();
         String[] parts = path.split("/");
 
@@ -128,7 +128,7 @@ public class EmployeeHandler implements HttpHandler {
                     @ApiResponse(responseCode = "403", description = "Forbidden")
             }
     )
-    private void handlePost(HttpExchange exchange, User currentUser) throws IOException, SQLException {
+    private void handlePost(HttpExchange exchange, Employee currentUser) throws IOException, SQLException {
         if (!AuthorizationUtil.canCreateEmployee(currentUser)) {
             sendResponse(exchange, 403, "Forbidden");
             return;
@@ -145,8 +145,7 @@ public class EmployeeHandler implements HttpHandler {
             return;
         }
 
-        Employee created = employeeDAO.create(employee);
-        auditDAO.logAction("CREATE", "EMPLOYEE", created.getId(), currentUser.getId());
+        Employee created = employeeDAO.create(employee, "test", true);
         sendResponse(exchange, 201, gson.toJson(created));
     }
 
@@ -164,7 +163,7 @@ public class EmployeeHandler implements HttpHandler {
                     @ApiResponse(responseCode = "404", description = "Employee not found")
             }
     )
-    private void handlePut(HttpExchange exchange, User currentUser) throws IOException, SQLException {
+    private void handlePut(HttpExchange exchange, Employee currentUser) throws IOException, SQLException {
         String path = exchange.getRequestURI().getPath();
         String[] parts = path.split("/");
         Long employeeId = Long.parseLong(parts[3]);
@@ -193,7 +192,6 @@ public class EmployeeHandler implements HttpHandler {
         }
 
         Employee result = employeeDAO.update(updated);
-        auditDAO.logAction("UPDATE", "EMPLOYEE", result.getId(), currentUser.getId());
         sendResponse(exchange, 200, gson.toJson(result));
     }
 
@@ -210,7 +208,7 @@ public class EmployeeHandler implements HttpHandler {
                     @ApiResponse(responseCode = "404", description = "Employee not found")
             }
     )
-    private void handleDelete(HttpExchange exchange, User currentUser) throws IOException, SQLException {
+    private void handleDelete(HttpExchange exchange, Employee currentUser) throws IOException, SQLException {
         if (!AuthorizationUtil.canDeleteEmployee(currentUser)) {
             sendResponse(exchange, 403, "Forbidden");
             return;
@@ -227,7 +225,6 @@ public class EmployeeHandler implements HttpHandler {
         }
 
         employeeDAO.delete(employee.getEmployeeId());
-        auditDAO.logAction("DELETE", "EMPLOYEE", employeeId, currentUser.getId());
         sendResponse(exchange, 204, "");
     }
 

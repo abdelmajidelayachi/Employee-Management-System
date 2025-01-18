@@ -9,13 +9,14 @@ import net.sourceforge.jdatepicker.impl.UtilDateModel;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import java.awt.*;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-import java.util.Properties;
+
 public class AuditLogPanel extends JPanel {
     private JTable auditTable;
     private DefaultTableModel tableModel;
@@ -69,7 +70,7 @@ public class AuditLogPanel extends JPanel {
         JPanel panel = new JPanel(new MigLayout("insets 0", "[]5[]5[]5[]push[]", "[]"));
 
         // Initialize filters
-        entityFilter = new JComboBox<>(new String[]{"All Entities", "EMPLOYEE", "USER", "DEPARTMENT"});
+        entityFilter = new JComboBox<>(new String[]{"All Entities", "EMPLOYEE", "DEPARTMENT"});
         actionFilter = new JComboBox<>(new String[]{"All Actions", "CREATE", "UPDATE", "DELETE"});
 
         // Date pickers setup
@@ -108,23 +109,23 @@ public class AuditLogPanel extends JPanel {
     void refreshData() {
         try {
             // Get filter values
-            String entity = entityFilter.getSelectedItem().toString();
-            String action = actionFilter.getSelectedItem().toString();
-            LocalDate startDate = null;
-            LocalDate endDate = null;
+            String entity = entityFilter.getSelectedItem().toString().equalsIgnoreCase("All Entities") ? null : entityFilter.getSelectedItem().toString() ;
+            String action = actionFilter.getSelectedItem().toString().equalsIgnoreCase("All Actions") ?  null :actionFilter.getSelectedItem().toString();
+            LocalDateTime startDate = null;
+            LocalDateTime endDate = null;
             
             if (startDatePicker.getModel().getValue() != null) {
-                startDate = ((java.util.Date) startDatePicker.getModel().getValue())
+                startDate = ((Date) startDatePicker.getModel().getValue())
                     .toInstant()
-                    .atZone(java.time.ZoneId.systemDefault())
-                    .toLocalDate();
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate().atStartOfDay();
             }
             
             if (endDatePicker.getModel().getValue() != null) {
-                endDate = ((java.util.Date) endDatePicker.getModel().getValue())
+                endDate = ((Date) endDatePicker.getModel().getValue())
                     .toInstant()
-                    .atZone(java.time.ZoneId.systemDefault())
-                    .toLocalDate();
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate().atStartOfDay();
             }
             
             // Apply filters
@@ -135,7 +136,7 @@ public class AuditLogPanel extends JPanel {
 //                endDate
 //            );
 
-            List<AuditLog> logs = new ArrayList<>();
+            List<AuditLog> logs = auditDAO.getAuditLogs(entity, action, startDate, endDate);
 
             // Update table
             tableModel.setRowCount(0);
@@ -147,7 +148,7 @@ public class AuditLogPanel extends JPanel {
                         log.getAction(),
                         log.getEntityType(),
                         log.getEntityId(),
-                        log.getUser().getUsername(),
+                        log.getEmployee_id(),
                         log.getChanges()
                 };
                 tableModel.addRow(row);

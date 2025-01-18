@@ -8,7 +8,8 @@ public class AuditLog {
     private String action;
     private String entityType;
     private Long entityId;
-    private User user;
+    private Long employee_id;
+    private Employee employee;
     private LocalDateTime timestamp;
     private String changes;
 
@@ -44,16 +45,24 @@ public class AuditLog {
         this.entityId = entityId;
     }
 
-    public User getUser() {
-        return user;
+    public Long getEmployee_id() {
+        return employee_id;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setEmployee_id(Long employee_id) {
+        this.employee_id = employee_id;
     }
 
     public LocalDateTime getTimestamp() {
         return timestamp;
+    }
+
+    public Employee getEmployee() {
+        return employee;
+    }
+
+    public void setEmployee(Employee employee) {
+        this.employee = employee;
     }
 
     public void setTimestamp(LocalDateTime timestamp) {

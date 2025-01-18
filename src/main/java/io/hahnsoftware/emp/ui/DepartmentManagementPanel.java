@@ -1,6 +1,7 @@
 package io.hahnsoftware.emp.ui;
 
 import io.hahnsoftware.emp.dto.DepartmentDAO;
+import io.hahnsoftware.emp.dto.EmployeeDAO;
 import io.hahnsoftware.emp.model.Department;
 import io.hahnsoftware.emp.ui.button.MButton;
 import io.hahnsoftware.emp.ui.form.DepartmentFormPanel;
@@ -25,7 +26,7 @@ public class DepartmentManagementPanel extends JPanel implements StyleConstants 
         setBackground(StyleConstants.BG_SECONDARY);
 
         try {
-            departmentDAO = new DepartmentDAO();
+            departmentDAO = new DepartmentDAO(new EmployeeDAO());
         } catch (Exception e) {
             throw new RuntimeException("Failed to initialize DepartmentDAO", e);
         }

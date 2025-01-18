@@ -2,6 +2,7 @@ package io.hahnsoftware.emp.dto;
 
 
 import io.hahnsoftware.emp.model.AuditLog;
+import io.hahnsoftware.emp.model.Employee;
 import io.hahnsoftware.emp.util.DatabaseConnection;
 
 import java.sql.*;
@@ -11,23 +12,38 @@ import java.util.List;
 
 public class AuditDAO {
     private final Connection connection;
-    private final UserDAO userDAO;
-    
+
+
+    private EmployeeDAO employeeDAO;
+
+
+    private static Employee actionUser;
+
+
+    public enum ActionAudit {
+        CREATE,
+        UPDATE,
+        DELETE
+    }
+    public enum Entities {
+        EMPLOYEE,
+        DEPARTMENT
+    }
     public AuditDAO() throws SQLException {
         this.connection = DatabaseConnection.getConnection();
-        this.userDAO = new UserDAO();
     }
     
-    public void logAction(String action, String entityType, Long entityId, Long userId) throws SQLException {
-        String sql = "INSERT INTO audit_log (action, entity_type, entity_id, user_id, timestamp) " +
-                    "VALUES (?, ?, ?, ?, ?)";
+    public void logAction(String action, String entityType, Long entityId, Long employee_id, String changes) throws SQLException {
+        String sql = "INSERT INTO audit_log (action, entity_type, entity_id, employee_id, timestamp, changes) " +
+                    "VALUES (?, ?, ?, ?, ?,?)";
                     
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, action);
             stmt.setString(2, entityType);
             stmt.setLong(3, entityId);
-            stmt.setLong(4, userId);
+            stmt.setLong(4, employee_id);
             stmt.setTimestamp(5, Timestamp.valueOf(LocalDateTime.now()));
+            stmt.setString(6, changes);
             
             stmt.executeUpdate();
             connection.commit();
@@ -37,7 +53,7 @@ public class AuditDAO {
         }
     }
     
-    public List<AuditLog> getAuditLogs(String entityType, Long entityId,
+    public List<AuditLog> getAuditLogs(String entityType, String action,
                                        LocalDateTime startDate, LocalDateTime endDate) throws SQLException {
         List<AuditLog> auditLogs = new ArrayList<>();
         StringBuilder sql = new StringBuilder("SELECT * FROM audit_log WHERE 1=1");
@@ -48,9 +64,9 @@ public class AuditDAO {
             params.add(entityType);
         }
         
-        if (entityId != null) {
-            sql.append(" AND entity_id = ?");
-            params.add(entityId);
+        if (action != null) {
+            sql.append(" AND action = ?");
+            params.add(action);
         }
         
         if (startDate != null) {
@@ -87,13 +103,26 @@ public class AuditDAO {
         auditLog.setEntityType(rs.getString("entity_type"));
         auditLog.setEntityId(rs.getLong("entity_id"));
         auditLog.setTimestamp(rs.getTimestamp("timestamp").toLocalDateTime());
-        
-        // Load user
-        Long userId = rs.getLong("user_id");
-        if (!rs.wasNull()) {
-            auditLog.setUser(userDAO.findById(userId));
+        auditLog.setChanges(rs.getString("changes"));
+
+        if (employeeDAO != null) {
+            Long userId = rs.getLong("employee_id");
+            if (!rs.wasNull()) {
+                auditLog.setEmployee(employeeDAO.findById(userId));
+            }
         }
-        
+
         return auditLog;
     }
+
+    // get current logged user
+    public static Employee getActionUser() {
+        return actionUser;
+    }
+
+    // set current logged user
+    public static void setActionUser(Employee actionUser) {
+        AuditDAO.actionUser = actionUser;
+    }
+
 }

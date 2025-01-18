@@ -1,55 +1,66 @@
 package io.hahnsoftware.emp.ui.form;
 
 import io.hahnsoftware.emp.dto.DepartmentDAO;
+import io.hahnsoftware.emp.dto.EmployeeDAO;
 import io.hahnsoftware.emp.model.Department;
+import io.hahnsoftware.emp.model.Employee;
 import io.hahnsoftware.emp.ui.StyleConstants;
 import io.hahnsoftware.emp.ui.button.MButton;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.sql.SQLException;
 
 public class DepartmentFormPanel extends JPanel implements StyleConstants {
     private final JTextField nameField;
+    private final JComboBox<Employee> managerComboBox;
     private final Runnable onSave;
     private Department existingDepartment;
     private final DepartmentDAO departmentDAO;
-
+    private final EmployeeDAO employeeDAO;
     public DepartmentFormPanel(Runnable onSave) {
         this.onSave = onSave;
         try {
-            this.departmentDAO = new DepartmentDAO();
+            this.employeeDAO = new EmployeeDAO();
+            this.departmentDAO = new DepartmentDAO(this.employeeDAO);
         } catch (Exception e) {
             throw new RuntimeException("Failed to initialize DepartmentDAO", e);
         }
 
-        setLayout(new MigLayout("wrap 2, fillx, insets 20", "[][grow]", "[]15[]25[]"));
+        setLayout(new MigLayout("wrap 2, fillx, insets 20", "[][grow]", "[]15[]15[]25[]"));
         setBackground(BG_PRIMARY);
 
         // Initialize components
         nameField = new JTextField(20);
+        managerComboBox = new JComboBox<>();
 
         // Style components
         styleComponents();
-        
+
         // Add components
         setupLayout();
-        
+
         // Setup buttons
         setupButtons();
+
+        // Load managers
+        loadManagers();
     }
 
     private void styleComponents() {
         styleTextField(nameField);
+        styleComboBox(managerComboBox);
     }
+
 
     private void setupLayout() {
         add(createStyledLabel("Department Name:*"));
         add(nameField, "growx");
-    }
 
+        add(createStyledLabel("Manager:"));
+        add(managerComboBox, "growx");
+    }
     private void setupButtons() {
         JPanel buttonPanel = new JPanel(new MigLayout("insets 0", "[grow][]"));
         buttonPanel.setOpaque(false);
@@ -79,6 +90,10 @@ public class DepartmentFormPanel extends JPanel implements StyleConstants {
         this.existingDepartment = department;
         if (department != null) {
             nameField.setText(department.getName());
+            managerComboBox.setSelectedItem(department.getManager());
+        } else {
+            nameField.setText("");
+            managerComboBox.setSelectedIndex(-1);
         }
     }
 
@@ -91,9 +106,11 @@ public class DepartmentFormPanel extends JPanel implements StyleConstants {
             if (existingDepartment == null) {
                 Department newDepartment = new Department();
                 newDepartment.setName(nameField.getText().trim());
-                departmentDAO.createDepartment(newDepartment);
+                newDepartment.setManager((Employee) managerComboBox.getSelectedItem());
+                departmentDAO.createDepartment(newDepartment, true);
             } else {
                 existingDepartment.setName(nameField.getText().trim());
+                existingDepartment.setManager((Employee) managerComboBox.getSelectedItem());
                 departmentDAO.updateDepartment(existingDepartment);
             }
             onSave.run();
@@ -106,6 +123,37 @@ public class DepartmentFormPanel extends JPanel implements StyleConstants {
             showError("Error saving department: " + e.getMessage());
         }
     }
+
+    private void loadManagers() {
+        try {
+            java.util.List<Employee> managers = employeeDAO.findAllManagers();
+            managerComboBox.removeAllItems();
+            managerComboBox.addItem(null); // Add a null option for no manager
+            for (Employee manager : managers) {
+                managerComboBox.addItem(manager);
+            }
+        } catch (SQLException e) {
+            showError("Error loading managers: " + e.getMessage());
+        }
+    }
+
+    private void styleComboBox(JComboBox<?> comboBox) {
+        comboBox.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value,
+                                                          int index, boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof Employee) {
+                    Employee employee = (Employee) value;
+                    setText(employee.getFullName());
+                } else if (value == null) {
+                    setText("No Manager");
+                }
+                return this;
+            }
+        });
+    }
+
 
     private boolean validateForm() {
         if (nameField.getText().trim().isEmpty()) {

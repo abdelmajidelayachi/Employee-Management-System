@@ -1,8 +1,8 @@
 package io.hahnsoftware.emp.ui;
 
+import io.hahnsoftware.emp.model.Employee;
 import io.hahnsoftware.emp.ui.form.EmployeeFormPanel;
 import net.miginfocom.swing.MigLayout;
-import io.hahnsoftware.emp.model.User;
 import io.hahnsoftware.emp.model.UserRole;
 
 import javax.swing.*;
@@ -24,13 +24,12 @@ public class DashboardPanel extends JPanel {
 
     private final JPanel contentPanel;
     private final CardLayout contentLayout;
-    private User currentUser;
+    private static Employee currentUser;
     private String currentPanel = "";
     private final Map<String, JButton> menuButtons = new HashMap<>();
 
-    private final EmployeeListPanel employeeListPanel;
+    private final EmployeeManagementPanel employeeListPanel;
     private final EmployeeFormPanel employeeFormPanel;
-    private final UserManagementPanel userManagementPanel;
     private final DepartmentManagementPanel departmentManagementPanel;
     private final AuditLogPanel auditLogPanel;
 
@@ -39,9 +38,8 @@ public class DashboardPanel extends JPanel {
         setBackground(BG_COLOR);
 
         // Initialize content panels
-        employeeListPanel = new EmployeeListPanel(this::showEmployeeForm);
+        employeeListPanel = new EmployeeManagementPanel(this::showEmployeeForm);
         employeeFormPanel = new EmployeeFormPanel(this::showEmployeeList);
-        userManagementPanel = new UserManagementPanel();
         departmentManagementPanel = new DepartmentManagementPanel();
         auditLogPanel = new AuditLogPanel();
 
@@ -53,7 +51,6 @@ public class DashboardPanel extends JPanel {
         // Add panels to content area
         contentPanel.add(employeeListPanel, "employeeList");
         contentPanel.add(employeeFormPanel, "employeeForm");
-        contentPanel.add(userManagementPanel, "userManagement");
         contentPanel.add(departmentManagementPanel, "departmentManagement");
         contentPanel.add(auditLogPanel, "auditLog");
 
@@ -145,7 +142,6 @@ public class DashboardPanel extends JPanel {
 
         // Menu buttons
         addMenuButton(sidebar, "Employees", "👥", "employeeList");
-        addMenuButton(sidebar, "Users", "👤", "userManagement");
         addMenuButton(sidebar, "Departments", "🏢", "departmentManagement");
         addMenuButton(sidebar, "Audit Log", "📋", "auditLog");
 
@@ -240,20 +236,33 @@ public class DashboardPanel extends JPanel {
         // Refresh data based on panel type
         switch (panelName) {
             case "employeeList" -> employeeListPanel.refreshData();
-            case "userManagement" -> userManagementPanel.refreshData();
             case "departmentManagement" -> departmentManagementPanel.refreshData();
             case "auditLog" -> auditLogPanel.refreshData();
         }
     }
 
-    public void setCurrentUser(User user) {
-        this.currentUser = user;
+    public void setCurrentUser(Employee employee) {
+        this.currentUser = employee;
         updateAccess();
         // Refresh UI to show user info
         removeAll();
         setLayout(new MigLayout("fill, insets 0", "[270!][grow]", "[70!][grow]"));
         add(createHeader(), "span 2, growx, wrap");
-        add(createModernSidebar(() -> {}), "cell 0 1, grow");
+
+        // Pass the original onLogout Runnable here
+        Runnable onLogout = () -> {
+            // If there's a parent frame or main window, call the logout method
+            Container parent = getParent();
+            while (parent != null) {
+                if (parent instanceof MainWindow) {
+                    ((MainWindow) parent).onLogout();
+                    break;
+                }
+                parent = parent.getParent();
+            }
+        };
+
+        add(createModernSidebar(onLogout), "cell 0 1, grow");
         add(contentPanel, "cell 1 1, grow");
         revalidate();
         repaint();

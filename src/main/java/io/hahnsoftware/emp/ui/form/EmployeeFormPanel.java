@@ -1,5 +1,6 @@
 package io.hahnsoftware.emp.ui.form;
 
+import io.hahnsoftware.emp.model.UserRole;
 import io.hahnsoftware.emp.ui.StyleConstants;
 import io.hahnsoftware.emp.ui.button.MButton;
 import io.hahnsoftware.emp.ui.date.DatePickerComponent;
@@ -22,6 +23,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -30,14 +32,19 @@ public class EmployeeFormPanel extends JPanel implements StyleConstants {
     private final JTextField fullNameField;
     private final JTextField emailField;
     private final JTextField phoneField;
+    private final JTextField usernameField;
     private final JTextArea addressArea;
     private final JTextField jobTitleField;
     private final JComboBox<Department> departmentCombo;
+    private final JComboBox<UserRole> roleCombo;
     private final JComboBox<EmploymentStatus> statusCombo;
     private final EmployeeDAO employeeDAO;
     private final DepartmentDAO departmentDAO;
     private final Runnable onSaveComplete;
     private final DatePickerComponent hireDatePicker;
+    private final JCheckBox changePasswordCheckBox;
+    private final JPasswordField passwordField;
+    private final JPasswordField confirmPasswordField;
 
     private Long editingEmployeeId;
 
@@ -46,7 +53,7 @@ public class EmployeeFormPanel extends JPanel implements StyleConstants {
 
         try {
             employeeDAO = new EmployeeDAO();
-            departmentDAO = new DepartmentDAO();
+            departmentDAO = new DepartmentDAO(new EmployeeDAO());
         } catch (SQLException e) {
             throw new RuntimeException("Failed to initialize DAOs", e);
         }
@@ -69,7 +76,10 @@ public class EmployeeFormPanel extends JPanel implements StyleConstants {
         fullNameField = createStyledTextField();
         emailField = createStyledTextField();
         phoneField = createStyledTextField();
+        usernameField = createStyledTextField();
+        passwordField = createStyledPasswordField();
         jobTitleField = createStyledTextField();
+
 
         // Styled text area
         addressArea = new JTextArea(3, 20);
@@ -83,6 +93,13 @@ public class EmployeeFormPanel extends JPanel implements StyleConstants {
         departmentCombo = createStyledComboBox();
         statusCombo = createStyledComboBox();
         statusCombo.setModel(new DefaultComboBoxModel<>(EmploymentStatus.values()));
+
+        changePasswordCheckBox = new JCheckBox("Change Password");
+        changePasswordCheckBox.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        changePasswordCheckBox.setBackground(BG_PRIMARY);
+        changePasswordCheckBox.setForeground(TEXT_PRIMARY);
+        roleCombo = createStyledComboBox();
+        roleCombo.setModel(new DefaultComboBoxModel<>(UserRole.values()));
 
         // Date picker component
         hireDatePicker = new DatePickerComponent();
@@ -98,8 +115,16 @@ public class EmployeeFormPanel extends JPanel implements StyleConstants {
         // Create section panels
         JPanel personalInfoPanel = createSectionPanel("Personal Information");
         JPanel employmentInfoPanel = createSectionPanel("Employment Information");
-
-        // Add components to personal info section
+        confirmPasswordField = createStyledPasswordField();
+        changePasswordCheckBox.addActionListener(e -> {
+            boolean isPasswordChangeEnabled = changePasswordCheckBox.isSelected();
+            passwordField.setEnabled(isPasswordChangeEnabled);
+            confirmPasswordField.setEnabled(isPasswordChangeEnabled);
+            passwordField.setText("");
+            confirmPasswordField.setText("");
+        });
+        passwordField.setEnabled(false);
+        confirmPasswordField.setEnabled(false);
         personalInfoPanel.add(createStyledLabel("Employee ID:"), "align label");
         personalInfoPanel.add(employeeIdField, "growx");
         personalInfoPanel.add(createStyledLabel("Full Name:"), "align label");
@@ -108,6 +133,15 @@ public class EmployeeFormPanel extends JPanel implements StyleConstants {
         personalInfoPanel.add(emailField, "growx");
         personalInfoPanel.add(createStyledLabel("Phone:"), "align label");
         personalInfoPanel.add(phoneField, "growx");
+        personalInfoPanel.add(createStyledLabel("Username:"), "align label");
+        personalInfoPanel.add(usernameField, "growx");
+        personalInfoPanel.add(createStyledLabel("Change Password:"), "align label");
+        personalInfoPanel.add(changePasswordCheckBox, "growx, wrap");
+        personalInfoPanel.add(createStyledLabel("New Password:"), "align label");
+        personalInfoPanel.add(passwordField, "growx");
+        personalInfoPanel.add(createStyledLabel("Confirm Password:"), "align label");
+        personalInfoPanel.add(confirmPasswordField, "growx");
+        personalInfoPanel.add(passwordField, "growx");
         personalInfoPanel.add(createStyledLabel("Address:"), "align label");
         personalInfoPanel.add(addressScroll, "growx");
 
@@ -118,6 +152,8 @@ public class EmployeeFormPanel extends JPanel implements StyleConstants {
         personalInfoPanel.add(hireDatePicker, "growx");
         employmentInfoPanel.add(createStyledLabel("Department:"), "align label");
         employmentInfoPanel.add(departmentCombo, "growx");
+        employmentInfoPanel.add(createStyledLabel("Role:"), "align label");
+        employmentInfoPanel.add(roleCombo, "growx");
         employmentInfoPanel.add(createStyledLabel("Status:"), "align label");
         employmentInfoPanel.add(statusCombo, "growx");
 
@@ -154,6 +190,18 @@ public class EmployeeFormPanel extends JPanel implements StyleConstants {
 
         // Load departments
         loadDepartments();
+    }
+
+    private JPasswordField createStyledPasswordField() {
+        JPasswordField field = new JPasswordField();
+        field.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        field.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(BORDER_LIGHT),
+                BorderFactory.createEmptyBorder(5, 8, 5, 8)
+        ));
+        field.setBackground(BG_PRIMARY);
+        field.setForeground(TEXT_PRIMARY);
+        return field;
     }
 
     private JTextField createStyledTextField() {
@@ -260,9 +308,12 @@ public class EmployeeFormPanel extends JPanel implements StyleConstants {
             fullNameField.setText(employee.getFullName());
             emailField.setText(employee.getEmail());
             phoneField.setText(employee.getPhone());
+            usernameField.setText(employee.getUsername());
+            passwordField.setText(""); // Don't set the password field
             addressArea.setText(employee.getAddress());
             jobTitleField.setText(employee.getJobTitle());
             departmentCombo.setSelectedItem(employee.getDepartment());
+            roleCombo.setSelectedItem(employee.getRole());
             statusCombo.setSelectedItem(employee.getStatus());
 
             // Set hire date
@@ -316,8 +367,9 @@ public class EmployeeFormPanel extends JPanel implements StyleConstants {
             String jobTitle = jobTitleField.getText().trim();
             Department department = (Department) departmentCombo.getSelectedItem();
             EmploymentStatus status = (EmploymentStatus) statusCombo.getSelectedItem();
-
+            UserRole userRole = (UserRole) roleCombo.getSelectedItem();
             LocalDate hireDate = hireDatePicker.getDate();
+            String username = usernameField.getText().trim();
             // Validate required fields
             if (employeeId.isEmpty()) {
                 JOptionPane.showMessageDialog(this,
@@ -335,6 +387,33 @@ public class EmployeeFormPanel extends JPanel implements StyleConstants {
                 return;
             }
 
+            boolean isPasswordChangeRequested = changePasswordCheckBox.isSelected();
+            String password = null;
+
+            if (isPasswordChangeRequested) {
+                // Validate password fields
+                char[] passwordChars = passwordField.getPassword();
+                char[] confirmPasswordChars = confirmPasswordField.getPassword();
+
+                if (passwordChars.length == 0) {
+                    JOptionPane.showMessageDialog(this,
+                            "New password cannot be empty",
+                            "Validation Error",
+                            JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                if (!Arrays.equals(passwordChars, confirmPasswordChars)) {
+                    JOptionPane.showMessageDialog(this,
+                            "Passwords do not match",
+                            "Validation Error",
+                            JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                password = new String(passwordChars);
+            }
+
             // Create or update employee object
             Employee employee = isNewEmployee ? new Employee() : employeeDAO.findByEmployeeId(employeeId);
 
@@ -348,12 +427,22 @@ public class EmployeeFormPanel extends JPanel implements StyleConstants {
             employee.setHireDate(hireDate);
             employee.setDepartment(department);
             employee.setStatus(status);
+            employee.setUsername(username);
+            employee.setRole(userRole);
 
             // Set hire date only for new employees
             if (isNewEmployee) {
-                employee.setHireDate(LocalDate.now());
+                employeeDAO.create(employee, password, true);
+                showSuccessAndClose("Employee created successfully");
+            } else {
+                if (isPasswordChangeRequested) {
+                    // Use a method that allows password change
+                    employeeDAO.updatePassword(employee, password);
+                } else {
+                    employeeDAO.update(employee);
+                }
+                showSuccessAndClose("Employee updated successfully");
             }
-
             // Perform validation
             List<String> validationErrors = validateEmployee(employee);
             if (!validationErrors.isEmpty()) {
@@ -366,7 +455,7 @@ public class EmployeeFormPanel extends JPanel implements StyleConstants {
 
             // Save the employee
             if (isNewEmployee) {
-                employeeDAO.create(employee);
+                employeeDAO.create(employee, password, true);
                 showSuccessAndClose("Employee created successfully");
             } else {
                 employeeDAO.update(employee);
@@ -389,6 +478,7 @@ public class EmployeeFormPanel extends JPanel implements StyleConstants {
 
         // Call the onSaveComplete runnable to close the dialog
         onSaveComplete.run();
+        clearForm();
     }
 
     

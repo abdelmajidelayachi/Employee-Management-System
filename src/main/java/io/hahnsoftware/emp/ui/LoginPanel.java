@@ -1,8 +1,8 @@
 package io.hahnsoftware.emp.ui;
 
+import io.hahnsoftware.emp.dto.EmployeeDAO;
+import io.hahnsoftware.emp.model.Employee;
 import net.miginfocom.swing.MigLayout;
-import io.hahnsoftware.emp.dto.UserDAO;
-import io.hahnsoftware.emp.model.User;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -13,21 +13,20 @@ public class LoginPanel extends JPanel {
     private JTextField usernameField;
     private JPasswordField passwordField;
     private JButton loginButton;
-    private final UserDAO userDAO;
-    private final Consumer<User> onLoginSuccess;
+    private final EmployeeDAO employeeDAO;
+    private final Consumer<Employee> onLoginSuccess;
 
-
-    public LoginPanel(Consumer<User> onLoginSuccess) {
+    public LoginPanel(Consumer<Employee> onLoginSuccess) {
         this.onLoginSuccess = onLoginSuccess;
 
         try {
-            userDAO = new UserDAO();
+            employeeDAO = new EmployeeDAO();
         } catch (Exception e) {
             throw new RuntimeException("Failed to initialize UserDAO", e);
         }
 
         setLayout(new MigLayout("fill, insets 0", "[grow]", "[grow]"));
-        setBackground(StyleConstants.ACCENT_COOL);
+        setBackground(StyleConstants.MAIN_COLOR);
 
         // Create main container
         JPanel container = createMainContainer();
@@ -209,9 +208,9 @@ public class LoginPanel extends JPanel {
             loginButton.setText("Logging in...");
             setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 
-            User user = userDAO.validateCredentials(username, password);
-            if (user != null) {
-                onLoginSuccess.accept(user);
+            Employee employee = employeeDAO.validateCredentials(username, password);
+            if (employee != null) {
+                onLoginSuccess.accept(employee);
                 clearForm();
             } else {
                 showError("Invalid username or password");
