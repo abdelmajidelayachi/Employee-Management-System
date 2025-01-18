@@ -1,5 +1,6 @@
 package io.hahnsoftware.emp.ui;
 
+import io.hahnsoftware.emp.dto.EmployeeDAO;
 import net.miginfocom.swing.MigLayout;
 import io.hahnsoftware.emp.dto.AuditDAO;
 import io.hahnsoftware.emp.model.AuditLog;
@@ -30,7 +31,7 @@ public class AuditLogPanel extends JPanel {
         setLayout(new MigLayout("fill, insets 20", "[grow]", "[]10[grow]"));
 
         try {
-            auditDAO = new AuditDAO();
+            auditDAO = new AuditDAO(new EmployeeDAO());
         } catch (SQLException e) {
             throw new RuntimeException("Failed to initialize AuditDAO", e);
         }
@@ -148,7 +149,7 @@ public class AuditLogPanel extends JPanel {
                         log.getAction(),
                         log.getEntityType(),
                         log.getEntityId(),
-                        log.getEmployee_id(),
+                        log.getEmployee().getUsername(),
                         log.getChanges()
                 };
                 tableModel.addRow(row);

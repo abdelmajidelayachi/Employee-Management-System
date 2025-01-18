@@ -14,7 +14,7 @@ public class AuditDAO {
     private final Connection connection;
 
 
-    private EmployeeDAO employeeDAO;
+    private final EmployeeDAO employeeDAO;
 
 
     private static Employee actionUser;
@@ -29,7 +29,8 @@ public class AuditDAO {
         EMPLOYEE,
         DEPARTMENT
     }
-    public AuditDAO() throws SQLException {
+    public AuditDAO(EmployeeDAO employeeDAO) throws SQLException {
+        this.employeeDAO = employeeDAO;
         this.connection = DatabaseConnection.getConnection();
     }
     

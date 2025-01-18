@@ -17,7 +17,7 @@ public class EmployeeDAO {
 
     public EmployeeDAO() throws SQLException {
         this.connection = DatabaseConnection.getConnection();
-        this.auditDAO = new AuditDAO();
+        this.auditDAO = new AuditDAO(this);
         this.departmentDAO = new DepartmentDAO(this);
     }
 

@@ -17,7 +17,7 @@ public class DepartmentDAO {
     public DepartmentDAO(EmployeeDAO employeeDAO) {
         try {
             this.employeeDAO = employeeDAO;
-            this.auditDAO = new AuditDAO();
+            this.auditDAO = new AuditDAO(employeeDAO);
         } catch (SQLException e) {
             throw new RuntimeException("error initialization of the UserDAO");
         }
