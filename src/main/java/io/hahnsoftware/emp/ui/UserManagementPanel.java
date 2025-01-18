@@ -1,5 +1,7 @@
 package io.hahnsoftware.emp.ui;
 
+import io.hahnsoftware.emp.ui.button.MButton;
+import io.hahnsoftware.emp.ui.form.UserFormPanel;
 import net.miginfocom.swing.MigLayout;
 import io.hahnsoftware.emp.dto.UserDAO;
 import io.hahnsoftware.emp.dto.DepartmentDAO;
@@ -9,12 +11,13 @@ import io.hahnsoftware.emp.model.UserRole;
 
 import javax.swing.*;
 import javax.swing.border.*;
+import javax.swing.plaf.ScrollBarUI;
 import javax.swing.table.*;
 import java.awt.*;
 import java.sql.SQLException;
 import java.util.List;
 
-public class UserManagementPanel extends JPanel {
+public class UserManagementPanel extends JPanel implements StyleConstants{
     private static final Color MAIN_COLOR = new Color(57, 145, 169); // #3991a9
     private static final Color LIGHTER_MAIN = new Color(87, 175, 199);
     private static final Color BACKGROUND_COLOR = new Color(245, 245, 245);
@@ -60,20 +63,23 @@ public class UserManagementPanel extends JPanel {
         setupModernTable();
 
         // Add table with modern scrollpane
+// Replace the existing scroll pane code with:
         JScrollPane scrollPane = new JScrollPane(userTable);
-        scrollPane.setBorder(BorderFactory.createEmptyBorder());
-        scrollPane.getViewport().setBackground(Color.WHITE);
-        scrollPane.setBackground(Color.WHITE);
+        styleScrollPanel(scrollPane);
 
-        // Wrap scrollpane in a panel with shadow border
+// Update the table panel
         JPanel tablePanel = new JPanel(new BorderLayout());
-        tablePanel.setBackground(Color.WHITE);
+        tablePanel.setBackground(StyleConstants.BG_PRIMARY);
         tablePanel.setBorder(createShadowBorder());
         tablePanel.add(scrollPane);
-
         add(tablePanel, "grow");
 
         refreshData();
+    }
+    private void styleScrollPanel(JScrollPane scrollPane) {
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        scrollPane.getViewport().setBackground(StyleConstants.BG_PRIMARY);
+        scrollPane.setBackground(StyleConstants.BG_PRIMARY);
     }
 
     void refreshData() {
@@ -149,8 +155,9 @@ public class UserManagementPanel extends JPanel {
         styleTextField(searchField);
 
         // Add button with icon
-        JButton addButton = new ModernButton("Add New User +");
-        styleButton(addButton);
+        MButton addButton = new MButton("+ Add New User", MButton.ButtonType.PRIMARY)
+                .withSize(150, 38)
+                .withAnimation(true);
         addButton.addActionListener(e -> showAddUserDialog());
 
         toolbar.add(searchField);
@@ -161,22 +168,26 @@ public class UserManagementPanel extends JPanel {
 
     private void setupModernTable() {
         // Basic table setup
-        userTable.setRowHeight(40);
+        userTable.setRowHeight(45);
         userTable.setShowVerticalLines(false);
         userTable.setShowHorizontalLines(true);
-        userTable.setGridColor(new Color(230, 230, 230));
-        userTable.setBackground(Color.WHITE);
-        userTable.setSelectionBackground(new Color(237, 244, 246));
-        userTable.setSelectionForeground(Color.BLACK);
+        userTable.setGridColor(StyleConstants.BORDER_LIGHT);
+        userTable.setBackground(StyleConstants.BG_PRIMARY);
+        userTable.setSelectionBackground(StyleConstants.HOVER_COLOR);
+        userTable.setSelectionForeground(StyleConstants.TEXT_PRIMARY);
         userTable.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        userTable.setBorder(BorderFactory.createEmptyBorder());
+
+        // Intercell spacing
+        userTable.setIntercellSpacing(new Dimension(0, 1));
 
         // Custom header renderer
         JTableHeader header = userTable.getTableHeader();
         header.setDefaultRenderer(new ModernHeaderRenderer());
-        header.setPreferredSize(new Dimension(0, 40));
-        header.setBackground(TABLE_HEADER_COLOR);
-        header.setForeground(Color.WHITE);
-        header.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        header.setPreferredSize(new Dimension(0, 45));
+        header.setBackground(StyleConstants.MAIN_COLOR);
+        header.setForeground(StyleConstants.TEXT_LIGHT);
+        header.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 14));
 
         // Set column widths
         TableColumnModel columnModel = userTable.getColumnModel();
@@ -185,9 +196,9 @@ public class UserManagementPanel extends JPanel {
         columnModel.getColumn(2).setPreferredWidth(200); // Department
         columnModel.getColumn(3).setPreferredWidth(150); // Actions
 
-        // Modern button renderer and editor
-        columnModel.getColumn(3).setCellRenderer(new ModernButtonRenderer());
-        columnModel.getColumn(3).setCellEditor(new ModernButtonEditor(new JCheckBox()));
+        // Action column renderer and editor
+        columnModel.getColumn(3).setCellRenderer(new ButtonRenderer());
+        columnModel.getColumn(3).setCellEditor(new ButtonEditor());
 
         // Stripe pattern
         userTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
@@ -196,7 +207,7 @@ public class UserManagementPanel extends JPanel {
                                                            boolean isSelected, boolean hasFocus, int row, int column) {
                 Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
                 if (!isSelected) {
-                    c.setBackground(row % 2 == 0 ? Color.WHITE : TABLE_STRIPE_COLOR);
+                    c.setBackground(row % 2 == 0 ? StyleConstants.BG_PRIMARY : StyleConstants.BG_SECONDARY);
                 }
                 setBorder(new EmptyBorder(0, 10, 0, 10));
                 return c;
@@ -206,87 +217,47 @@ public class UserManagementPanel extends JPanel {
 
     private void showAddUserDialog() {
         JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Add New User", true);
-        dialog.setLayout(new MigLayout("wrap 2, fillx, insets 20", "[][grow]", "[]15[]15[]15[]25[]"));
 
-        // Style the dialog
-        dialog.setBackground(Color.WHITE);
-        ((JPanel) dialog.getContentPane()).setBackground(Color.WHITE);
-
-        // Title
-        JLabel titleLabel = new JLabel("Add New User");
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 20));
-        dialog.add(titleLabel, "span 2, center, wrap 20");
-
-        // Form components
-        JTextField usernameField = new JTextField(20);
-        JPasswordField passwordField = new JPasswordField(20);
-        JComboBox<UserRole> roleCombo = new JComboBox<>(UserRole.values());
-        JComboBox<Department> departmentCombo = new JComboBox<>();
-
-        // Style form components
-        styleTextField(usernameField);
-        styleTextField(passwordField);
-        styleComboBox(roleCombo);
-        styleComboBox(departmentCombo);
-
-        // Load departments
-        try {
-            List<Department> departments = departmentDAO.findAll();
-            for (Department dept : departments) {
-                departmentCombo.addItem(dept);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        // Add form components with styled labels
-        dialog.add(createStyledLabel("Username:*"));
-        dialog.add(usernameField, "growx");
-        dialog.add(createStyledLabel("Password:*"));
-        dialog.add(passwordField, "growx");
-        dialog.add(createStyledLabel("Role:*"));
-        dialog.add(roleCombo, "growx");
-        dialog.add(createStyledLabel("Department:*"));
-        dialog.add(departmentCombo, "growx");
-
-        // Button panel
-        JPanel buttonPanel = new JPanel(new MigLayout("insets 0", "[grow][]"));
-        buttonPanel.setBackground(Color.WHITE);
-
-        JButton saveButton = new JButton("Save");
-        JButton cancelButton = new JButton("Cancel");
-
-        styleButton(saveButton);
-        styleButton(cancelButton);
-        cancelButton.setBackground(Color.LIGHT_GRAY);
-
-        buttonPanel.add(cancelButton, "growx");
-        buttonPanel.add(saveButton, "growx");
-
-        dialog.add(buttonPanel, "span 2, growx");
-
-        // Dialog actions
-        saveButton.addActionListener(e -> {
-            if (validateForm(usernameField.getText(), new String(passwordField.getPassword()))) {
-                saveUser(
-                        usernameField.getText(),
-                        new String(passwordField.getPassword()),
-                        (UserRole) roleCombo.getSelectedItem(),
-                        (Department) departmentCombo.getSelectedItem()
-                );
-                dialog.dispose();
-            }
+        UserFormPanel formPanel = new UserFormPanel(() -> {
+            refreshData();
+            dialog.dispose();
         });
 
-        cancelButton.addActionListener(e -> dialog.dispose());
+        try {
+            List<Department> departments = departmentDAO.findAll();
+            formPanel.setDepartments(departments);
+        } catch (SQLException e) {
+            showError("Error loading departments: " + e.getMessage());
+        }
 
-        // Dialog properties
+        dialog.setContentPane(formPanel);
         dialog.pack();
-        dialog.setMinimumSize(new Dimension(400, dialog.getHeight()));
         dialog.setLocationRelativeTo(this);
         dialog.setVisible(true);
     }
 
+    private void showEditUserDialog(String username) {
+        JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Edit User", true);
+
+        UserFormPanel formPanel = new UserFormPanel(() -> {
+            refreshData();
+            dialog.dispose();
+        });
+
+        try {
+            User user = userDAO.findByUsername(username);
+            List<Department> departments = departmentDAO.findAll();
+            formPanel.setDepartments(departments);
+            formPanel.setUser(user);
+        } catch (SQLException e) {
+            showError("Error loading data: " + e.getMessage());
+        }
+
+        dialog.setContentPane(formPanel);
+        dialog.pack();
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+    }
     // Styling methods
     private void styleTextField(JTextField field) {
         field.setPreferredSize(new Dimension(field.getPreferredSize().width, 35));
@@ -303,24 +274,6 @@ public class UserManagementPanel extends JPanel {
         ((JComponent) comboBox.getRenderer()).setBorder(new EmptyBorder(5, 10, 5, 10));
     }
 
-    private void styleButton(JButton button) {
-        button.setBackground(MAIN_COLOR);
-        button.setForeground(Color.WHITE);
-        button.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        button.setBorder(new EmptyBorder(10, 20, 10, 20));
-        button.setFocusPainted(false);
-        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
-        button.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                button.setBackground(LIGHTER_MAIN);
-            }
-
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                button.setBackground(MAIN_COLOR);
-            }
-        });
-    }
 
     private JLabel createStyledLabel(String text) {
         JLabel label = new JLabel(text);
@@ -355,71 +308,74 @@ public class UserManagementPanel extends JPanel {
     }
 
     // Modern button renderer and editor classes
-    private class ModernButtonRenderer extends JPanel implements TableCellRenderer {
-        private final JButton editButton;
-        private final JButton deleteButton;
+    private class ButtonRenderer extends JPanel implements TableCellRenderer {
+        private final MButton editButton;
+        private final MButton deleteButton;
 
-        public ModernButtonRenderer() {
+        public ButtonRenderer() {
             setLayout(new FlowLayout(FlowLayout.CENTER, 5, 0));
             setOpaque(true);
 
-            editButton = new JButton("Edit");
-            deleteButton = new JButton("Delete");
+            editButton = new MButton("Edit", MButton.ButtonType.BTN_INFO)
+                    .withSize(80, 30)
+                    .withAnimation(false);
 
-            styleActionButton(editButton, new Color(52, 152, 219));
-            styleActionButton(deleteButton, new Color(231, 76, 60));
+            deleteButton = new MButton("Delete", MButton.ButtonType.BTN_DANGER)
+                    .withSize(80, 30)
+                    .withAnimation(false);
 
             add(editButton);
             add(deleteButton);
         }
 
-        private void styleActionButton(JButton button, Color color) {
-            button.setBackground(color);
-            button.setForeground(Color.WHITE);
-            button.setFont(new Font("Segoe UI", Font.BOLD, 12));
-            button.setBorder(new EmptyBorder(5, 10, 5, 10));
-            button.setFocusPainted(false);
-        }
-
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value,
                                                        boolean isSelected, boolean hasFocus, int row, int column) {
-            setBackground(isSelected ? table.getSelectionBackground() : table.getBackground());
+            // Set background based on selection and stripe pattern
+            setBackground(isSelected ? table.getSelectionBackground() :
+                    (row % 2 == 0 ? BG_PRIMARY : BG_SECONDARY));
+
+            // Always show buttons
+            editButton.setVisible(true);
+            deleteButton.setVisible(true);
+
+            // Make panel opaque to handle background properly
+            setOpaque(true);
+
             return this;
         }
     }
 
-    private class ModernButtonEditor extends DefaultCellEditor {
+    private class ButtonEditor extends DefaultCellEditor {
         private final JPanel panel;
-        private final JButton editButton;
-        private final JButton deleteButton;
+        private final MButton editButton;
+        private final MButton deleteButton;
+        private String username;
 
-        public ModernButtonEditor(JCheckBox checkBox) {
-            super(checkBox);
+        public ButtonEditor() {
+            super(new JCheckBox());
 
             panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
             panel.setOpaque(true);
 
-            editButton = new JButton("Edit");
-            deleteButton = new JButton("Delete");
+            editButton = new MButton("Edit", MButton.ButtonType.BTN_INFO)
+                    .withSize(80, 30)
+                    .withAnimation(false);
 
-            styleActionButton(editButton, new Color(52, 152, 219));
-            styleActionButton(deleteButton, new Color(231, 76, 60));
+            deleteButton = new MButton("Delete", MButton.ButtonType.BTN_DANGER)
+                    .withSize(80, 30)
+                    .withAnimation(false);
 
             editButton.addActionListener(e -> {
-                stopCellEditing();
-                int row = userTable.getSelectedRow();
-                if (row >= 0) {
-                    String username = (String) userTable.getValueAt(row, 0);
+                fireEditingStopped();
+                if (username != null) {
                     editUser(username);
                 }
             });
 
             deleteButton.addActionListener(e -> {
-                stopCellEditing();
-                int row = userTable.getSelectedRow();
-                if (row >= 0) {
-                    String username = (String) userTable.getValueAt(row, 0);
+                fireEditingStopped();
+                if (username != null) {
                     deleteUser(username);
                 }
             });
@@ -428,28 +384,10 @@ public class UserManagementPanel extends JPanel {
             panel.add(deleteButton);
         }
 
-        private void styleActionButton(JButton button, Color color) {
-            button.setBackground(color);
-            button.setForeground(Color.WHITE);
-            button.setFont(new Font("Segoe UI", Font.BOLD, 12));
-            button.setBorder(new EmptyBorder(5, 10, 5, 10));
-            button.setFocusPainted(false);
-            button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
-            button.addMouseListener(new java.awt.event.MouseAdapter() {
-                public void mouseEntered(java.awt.event.MouseEvent evt) {
-                    button.setBackground(color.brighter());
-                }
-
-                public void mouseExited(java.awt.event.MouseEvent evt) {
-                    button.setBackground(color);
-                }
-            });
-        }
-
         @Override
         public Component getTableCellEditorComponent(JTable table, Object value,
                                                      boolean isSelected, int row, int column) {
+            username = (String) table.getValueAt(row, 0);
             panel.setBackground(table.getSelectionBackground());
             return panel;
         }
@@ -464,7 +402,7 @@ public class UserManagementPanel extends JPanel {
         try {
             User user = userDAO.findByUsername(username);
             if (user != null) {
-                showEditUserDialog(user);
+                showEditUserDialog(user.getUsername());
             }
         } catch (SQLException e) {
             showError("Error loading user: " + e.getMessage());
@@ -496,11 +434,13 @@ public class UserManagementPanel extends JPanel {
         JPanel buttonPanel = new JPanel(new MigLayout("insets 0", "[grow][]"));
         buttonPanel.setBackground(Color.WHITE);
 
-        JButton cancelButton = new JButton("Cancel");
-        JButton deleteButton = new JButton("Delete");
+        MButton cancelButton = new MButton("Cancel", MButton.ButtonType.SECONDARY)
+                .withSize(120, 38)
+                .withAnimation(true);
+        MButton deleteButton = new MButton("Delete", MButton.ButtonType.BTN_DANGER)
+                .withSize(120, 38)
+                .withAnimation(true);
 
-        styleButton(cancelButton);
-        styleButton(deleteButton);
         cancelButton.setBackground(Color.LIGHT_GRAY);
         deleteButton.setBackground(new Color(231, 76, 60));
 
@@ -527,124 +467,6 @@ public class UserManagementPanel extends JPanel {
         confirmDialog.pack();
         confirmDialog.setLocationRelativeTo(this);
         confirmDialog.setVisible(true);
-    }
-
-    private void showEditUserDialog(User user) {
-        JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Edit User", true);
-        dialog.setLayout(new MigLayout("wrap 2, fillx, insets 20", "[][grow]", "[]15[]15[]15[]25[]"));
-        dialog.setBackground(Color.WHITE);
-        ((JPanel) dialog.getContentPane()).setBackground(Color.WHITE);
-
-        // Title
-        JLabel titleLabel = new JLabel("Edit User");
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 20));
-        dialog.add(titleLabel, "span 2, center, wrap 20");
-
-        // Form components
-        JTextField usernameField = new JTextField(user.getUsername(), 20);
-        JCheckBox changePasswordCheckbox = new JCheckBox("Change Password");
-        JPasswordField passwordField = new JPasswordField(20);
-        JComboBox<UserRole> roleCombo = new JComboBox<>(UserRole.values());
-        JComboBox<Department> departmentCombo = new JComboBox<>();
-
-        // Style components
-        styleTextField(usernameField);
-        styleTextField(passwordField);
-        styleComboBox(roleCombo);
-        styleComboBox(departmentCombo);
-        changePasswordCheckbox.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-
-        // Set initial values
-        usernameField.setEnabled(false);
-        roleCombo.setSelectedItem(user.getRole());
-        passwordField.setEnabled(false);
-        changePasswordCheckbox.addActionListener(e ->
-                passwordField.setEnabled(changePasswordCheckbox.isSelected()));
-
-        // Load departments
-        try {
-            List<Department> departments = departmentDAO.findAll();
-            for (Department dept : departments) {
-                departmentCombo.addItem(dept);
-                if (user.getDepartment() != null &&
-                        user.getDepartment().getId().equals(dept.getId())) {
-                    departmentCombo.setSelectedItem(dept);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        // Add form components
-        dialog.add(createStyledLabel("Username:"));
-        dialog.add(usernameField, "growx");
-        dialog.add(changePasswordCheckbox, "span 2, wrap");
-        dialog.add(createStyledLabel("New Password:"));
-        dialog.add(passwordField, "growx");
-        dialog.add(createStyledLabel("Role:"));
-        dialog.add(roleCombo, "growx");
-        dialog.add(createStyledLabel("Department:"));
-        dialog.add(departmentCombo, "growx");
-
-        // Button panel
-        JPanel buttonPanel = new JPanel(new MigLayout("insets 0", "[grow][]"));
-        buttonPanel.setBackground(Color.WHITE);
-
-        JButton saveButton = new JButton("Save Changes");
-        JButton cancelButton = new JButton("Cancel");
-
-        styleButton(saveButton);
-        styleButton(cancelButton);
-        cancelButton.setBackground(Color.LIGHT_GRAY);
-
-        buttonPanel.add(cancelButton, "growx");
-        buttonPanel.add(saveButton, "growx");
-
-        dialog.add(buttonPanel, "span 2, growx");
-
-        // Dialog actions
-        saveButton.addActionListener(e -> {
-            if (updateUser(
-                    user,
-                    changePasswordCheckbox.isSelected() ? new String(passwordField.getPassword()) : null,
-                    (UserRole) roleCombo.getSelectedItem(),
-                    (Department) departmentCombo.getSelectedItem()
-            )) {
-                dialog.dispose();
-            }
-        });
-
-        cancelButton.addActionListener(e -> dialog.dispose());
-
-        // Dialog properties
-        dialog.pack();
-        dialog.setMinimumSize(new Dimension(400, dialog.getHeight()));
-        dialog.setLocationRelativeTo(this);
-        dialog.setVisible(true);
-    }
-
-    private boolean updateUser(User user, String newPassword, UserRole role, Department department) {
-        try {
-            user.setRole(role);
-            user.setDepartment(department);
-
-            if (newPassword != null && !newPassword.trim().isEmpty()) {
-                if (newPassword.length() < 6) {
-                    showError("Password must be at least 6 characters long");
-                    return false;
-                }
-                userDAO.updateUserWithPassword(user, newPassword);
-            } else {
-                userDAO.updateUser(user);
-            }
-
-            refreshData();
-            showSuccess("User updated successfully");
-            return true;
-        } catch (SQLException e) {
-            showError("Error updating user: " + e.getMessage());
-            return false;
-        }
     }
 
     private void showError(String message) {

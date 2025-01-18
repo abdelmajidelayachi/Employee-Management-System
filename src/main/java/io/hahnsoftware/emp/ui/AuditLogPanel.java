@@ -16,7 +16,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-
 public class AuditLogPanel extends JPanel {
     private JTable auditTable;
     private DefaultTableModel tableModel;
@@ -25,23 +24,19 @@ public class AuditLogPanel extends JPanel {
     private JComboBox<String> actionFilter;
     private JDatePickerImpl startDatePicker;
     private JDatePickerImpl endDatePicker;
-    
-    public AuditLogPanel(JComboBox<String> entityFilter, JComboBox<String> actionFilter, JDatePickerImpl startDatePicker, JDatePickerImpl endDatePicker) {
-        this.entityFilter = entityFilter;
-        this.actionFilter = actionFilter;
-        this.startDatePicker = startDatePicker;
-        this.endDatePicker = endDatePicker;
+
+    public AuditLogPanel() {
         setLayout(new MigLayout("fill, insets 20", "[grow]", "[]10[grow]"));
-        
+
         try {
             auditDAO = new AuditDAO();
         } catch (SQLException e) {
             throw new RuntimeException("Failed to initialize AuditDAO", e);
         }
-        
+
         // Create filter panel
         JPanel filterPanel = createFilterPanel();
-        
+
         // Create table
         String[] columns = {"Timestamp", "Action", "Entity Type", "Entity ID", "User", "Changes"};
         tableModel = new DefaultTableModel(columns, 0) {
@@ -50,10 +45,10 @@ public class AuditLogPanel extends JPanel {
                 return false;
             }
         };
-        
+
         auditTable = new JTable(tableModel);
         auditTable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
-        
+
         // Set column widths
         auditTable.getColumnModel().getColumn(0).setPreferredWidth(150); // Timestamp
         auditTable.getColumnModel().getColumn(1).setPreferredWidth(80);  // Action
@@ -61,46 +56,40 @@ public class AuditLogPanel extends JPanel {
         auditTable.getColumnModel().getColumn(3).setPreferredWidth(80);  // Entity ID
         auditTable.getColumnModel().getColumn(4).setPreferredWidth(100); // User
         auditTable.getColumnModel().getColumn(5).setPreferredWidth(300); // Changes
-        
+
         // Add components
         add(filterPanel, "growx, wrap");
         add(new JScrollPane(auditTable), "grow");
-        
+
         // Initial load
         refreshData();
     }
 
-    public AuditLogPanel() {
-
-    }
-
     private JPanel createFilterPanel() {
         JPanel panel = new JPanel(new MigLayout("insets 0", "[]5[]5[]5[]push[]", "[]"));
-        
-        // Entity filter
+
+        // Initialize filters
         entityFilter = new JComboBox<>(new String[]{"All Entities", "EMPLOYEE", "USER", "DEPARTMENT"});
-        entityFilter.addActionListener(e -> refreshData());
-        
-        // Action filter
         actionFilter = new JComboBox<>(new String[]{"All Actions", "CREATE", "UPDATE", "DELETE"});
-        actionFilter.addActionListener(e -> refreshData());
-        
-        // Date pickers
+
+        // Date pickers setup
         UtilDateModel startModel = new UtilDateModel();
         UtilDateModel endModel = new UtilDateModel();
-        Properties properties = new Properties();
-        properties.put("text.today", "Today");
-        
+
         JDatePanelImpl startDatePanel = new JDatePanelImpl(startModel);
         JDatePanelImpl endDatePanel = new JDatePanelImpl(endModel);
-        
+
         startDatePicker = new JDatePickerImpl(startDatePanel, new DateLabelFormatter());
         endDatePicker = new JDatePickerImpl(endDatePanel, new DateLabelFormatter());
-        
+
+        // Add listeners
+        entityFilter.addActionListener(e -> refreshData());
+        actionFilter.addActionListener(e -> refreshData());
+
         // Refresh button
         JButton refreshButton = new JButton("Refresh");
         refreshButton.addActionListener(e -> refreshData());
-        
+
         // Add components
         panel.add(new JLabel("Entity:"));
         panel.add(entityFilter);
@@ -111,10 +100,11 @@ public class AuditLogPanel extends JPanel {
         panel.add(new JLabel("End Date:"));
         panel.add(endDatePicker);
         panel.add(refreshButton, "right");
-        
+
         return panel;
     }
-    
+
+
     void refreshData() {
         try {
             // Get filter values

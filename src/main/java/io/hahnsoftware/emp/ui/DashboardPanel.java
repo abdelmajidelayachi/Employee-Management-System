@@ -1,5 +1,6 @@
 package io.hahnsoftware.emp.ui;
 
+import io.hahnsoftware.emp.ui.form.EmployeeFormPanel;
 import net.miginfocom.swing.MigLayout;
 import io.hahnsoftware.emp.model.User;
 import io.hahnsoftware.emp.model.UserRole;

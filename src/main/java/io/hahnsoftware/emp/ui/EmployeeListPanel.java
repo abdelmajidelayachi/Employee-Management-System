@@ -1,12 +1,12 @@
 package io.hahnsoftware.emp.ui;
 
+import io.hahnsoftware.emp.ui.button.MButton;
+import io.hahnsoftware.emp.ui.form.EmployeeFormPanel;
 import net.miginfocom.swing.MigLayout;
 import io.hahnsoftware.emp.dto.EmployeeDAO;
 import io.hahnsoftware.emp.model.Employee;
 import io.hahnsoftware.emp.model.EmploymentStatus;
-import net.sourceforge.jdatepicker.impl.JDatePanelImpl;
 import net.sourceforge.jdatepicker.impl.JDatePickerImpl;
-import net.sourceforge.jdatepicker.impl.UtilDateModel;
 
 
 import javax.swing.*;
@@ -19,8 +19,6 @@ import java.awt.print.PrinterException;
 import java.sql.SQLException;
 import java.text.MessageFormat;
 import java.util.List;
-import java.util.Properties;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class EmployeeListPanel extends JPanel implements StyleConstants{
@@ -97,6 +95,7 @@ public class EmployeeListPanel extends JPanel implements StyleConstants{
 
         // Intercell spacing
         employeeTable.setIntercellSpacing(new Dimension(0, 1));
+
 
         // Custom header renderer
         JTableHeader header = employeeTable.getTableHeader();
@@ -223,8 +222,9 @@ public class EmployeeListPanel extends JPanel implements StyleConstants{
         statusPanel.add(statusFilter, BorderLayout.CENTER);
 
         // Add button with enhanced style
-        JButton addButton = new JButton("+ Add Employee");
-        styleButton(addButton);
+        MButton addButton = new MButton("+ Add Employee", MButton.ButtonType.PRIMARY)
+                .withSize(150, 38)
+                .withAnimation(true);
         addButton.addActionListener(e -> onAddNew.run());
 
         // Add components with proper spacing
@@ -355,61 +355,6 @@ public class EmployeeListPanel extends JPanel implements StyleConstants{
         });
     }
 
-    private void styleDatePicker(JDatePickerImpl datePicker) {
-        datePicker.getJFormattedTextField().setPreferredSize(new Dimension(120, 35));
-        datePicker.getJFormattedTextField().setFont(new Font("Segoe UI", Font.PLAIN, 14));
-    }
-
-    private void styleButton(JButton button) {
-        button.setForeground(StyleConstants.TEXT_PRIMARY);
-        button.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 14));
-        button.setBorder(new EmptyBorder(10, 20, 10, 20));
-        button.setFocusPainted(false);
-        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
-        // Add hover effect
-        button.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                button.setBackground(StyleConstants.MAIN_DARKER);
-            }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                button.setBackground(StyleConstants.MAIN_COLOR);
-            }
-            public void mousePressed(java.awt.event.MouseEvent evt) {
-                button.setBackground(StyleConstants.MAIN_DARKER.darker());
-            }
-            public void mouseReleased(java.awt.event.MouseEvent evt) {
-                button.setBackground(StyleConstants.MAIN_DARKER);
-            }
-        });
-    }
-
-    private void styleActionButton(JButton button, Color baseColor) {
-        button.setBackground(baseColor);
-        button.setForeground(StyleConstants.TEXT_LIGHT);
-        button.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 13));
-        button.setBorder(new EmptyBorder(6, 12, 6, 12));  // Adjusted padding
-        button.setFocusPainted(false);
-        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
-        // Enhanced hover effect
-        button.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                button.setBackground(baseColor.brighter());
-                button.setBorder(new EmptyBorder(6, 14, 6, 14));  // Slightly expand
-            }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                button.setBackground(baseColor);
-                button.setBorder(new EmptyBorder(6, 12, 6, 12));  // Return to normal
-            }
-            public void mousePressed(java.awt.event.MouseEvent evt) {
-                button.setBackground(baseColor.darker());
-            }
-            public void mouseReleased(java.awt.event.MouseEvent evt) {
-                button.setBackground(baseColor);
-            }
-        });
-    }
 
     private Border createShadowBorder() {
         return BorderFactory.createCompoundBorder(
@@ -520,15 +465,12 @@ public class EmployeeListPanel extends JPanel implements StyleConstants{
         JPanel buttonPanel = new JPanel(new MigLayout("insets 0", "[grow][]"));
         buttonPanel.setForeground(TEXT_PRIMARY);
 
-        JButton cancelButton = new JButton("Cancel");
-        JButton deleteButton = new JButton("Delete");
-
-        styleButton(cancelButton);
-        styleButton(deleteButton);
-        deleteButton.setForeground(DANGER);
-        cancelButton.setForeground(TEXT_PRIMARY);
-        cancelButton.setBackground(Color.LIGHT_GRAY);
-        deleteButton.setBackground(new Color(231, 76, 60));
+        MButton cancelButton = new MButton("Cancel", MButton.ButtonType.SECONDARY)
+                .withSize(120, 38)
+                .withAnimation(true);
+        MButton deleteButton = new MButton("Delete", MButton.ButtonType.BTN_DANGER)
+                .withSize(120, 38)
+                .withAnimation(true);
 
         buttonPanel.add(cancelButton, "growx");
         buttonPanel.add(deleteButton, "growx");
@@ -586,44 +528,46 @@ public class EmployeeListPanel extends JPanel implements StyleConstants{
     }
 
     private class ButtonRenderer extends JPanel implements TableCellRenderer {
-        private final JButton editButton;
-        private final JButton deleteButton;
+        private final MButton editButton;
+        private final MButton deleteButton;
 
         public ButtonRenderer() {
             setLayout(new FlowLayout(FlowLayout.CENTER, 5, 0));
             setOpaque(true);
 
-            editButton = new JButton("Edit");
-            deleteButton = new JButton("Delete");
+            editButton = new MButton("Edit", MButton.ButtonType.BTN_INFO)
+                    .withSize(80, 30)
+                    .withAnimation(false);
 
-            styleActionButton(editButton, new Color(52, 152, 219));
-            editButton.setForeground(TEXT_PRIMARY);
-            styleActionButton(deleteButton, new Color(231, 76, 60));
-            deleteButton.setForeground(DANGER);
+            deleteButton = new MButton("Delete", MButton.ButtonType.BTN_DANGER)
+                    .withSize(80, 30)
+                    .withAnimation(false);
 
             add(editButton);
             add(deleteButton);
         }
 
-        private void styleActionButton(JButton button, Color color) {
-            button.setForeground(TEXT_PRIMARY);
-            button.setFont(new Font("Segoe UI", Font.BOLD, 12));
-            button.setBorder(new EmptyBorder(5, 10, 5, 10));
-            button.setFocusPainted(false);
-        }
-
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value,
                                                        boolean isSelected, boolean hasFocus, int row, int column) {
-            setBackground(isSelected ? table.getSelectionBackground() : table.getBackground());
+            // Set background based on selection and stripe pattern
+            setBackground(isSelected ? table.getSelectionBackground() :
+                    (row % 2 == 0 ? BG_PRIMARY : BG_SECONDARY));
+
+            // Always show buttons
+            editButton.setVisible(true);
+            deleteButton.setVisible(true);
+
+            // Make panel opaque to handle background properly
+            setOpaque(true);
+
             return this;
         }
     }
-
     private class ButtonEditor extends DefaultCellEditor {
         private final JPanel panel;
-        private final JButton editButton;
-        private final JButton deleteButton;
+        private final MButton editButton;
+        private final MButton deleteButton;
         private String employeeId;
 
         public ButtonEditor() {
@@ -632,11 +576,13 @@ public class EmployeeListPanel extends JPanel implements StyleConstants{
             panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
             panel.setOpaque(true);
 
-            editButton = new JButton("Edit");
-            deleteButton = new JButton("Delete");
+            editButton = new MButton("Edit", MButton.ButtonType.BTN_INFO)
+                    .withSize(80, 30)
+                    .withAnimation(false);
 
-            styleActionButton(editButton, new Color(52, 152, 219));
-            styleActionButton(deleteButton, new Color(231, 76, 60));
+            deleteButton = new MButton("Delete", MButton.ButtonType.BTN_DANGER)
+                    .withSize(80, 30)
+                    .withAnimation(false);
 
             editButton.addActionListener(e -> {
                 fireEditingStopped();
@@ -656,29 +602,6 @@ public class EmployeeListPanel extends JPanel implements StyleConstants{
             panel.add(deleteButton);
         }
 
-        private void styleActionButton(JButton button, Color color) {
-            button.setBackground(color);
-            button.setForeground(Color.WHITE);
-            button.setFont(new Font("Segoe UI", Font.BOLD, 12));
-            button.setBorder(new EmptyBorder(5, 10, 5, 10));
-            button.setFocusPainted(false);
-            button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
-            button.addMouseListener(new java.awt.event.MouseAdapter() {
-                public void mouseEntered(java.awt.event.MouseEvent evt) {
-                    if (button.isEnabled()) {
-                        button.setBackground(color.brighter());
-                    }
-                }
-
-                public void mouseExited(java.awt.event.MouseEvent evt) {
-                    if (button.isEnabled()) {
-                        button.setBackground(color);
-                    }
-                }
-            });
-        }
-
         @Override
         public Component getTableCellEditorComponent(JTable table, Object value,
                                                      boolean isSelected, int row, int column) {
@@ -692,18 +615,17 @@ public class EmployeeListPanel extends JPanel implements StyleConstants{
             return "Edit Delete";
         }
     }
-
     // Add utility methods for export and print functionality
     private void addExportButton(JPanel toolbar) {
-        JButton exportButton = new JButton("Export");
-        styleButton(exportButton);
+        MButton exportButton = new MButton("Export", MButton.ButtonType.SECONDARY)
+                .withSize(120, 38);;
         exportButton.addActionListener(e -> exportToExcel());
         toolbar.add(exportButton);
     }
 
     private void addPrintButton(JPanel toolbar) {
-        JButton printButton = new JButton("Print");
-        styleButton(printButton);
+        MButton printButton = new MButton("Print", MButton.ButtonType.SECONDARY)
+                .withSize(120, 38);;
         printButton.addActionListener(e -> printEmployeeList());
         toolbar.add(printButton);
     }

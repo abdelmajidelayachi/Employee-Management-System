@@ -1,5 +1,7 @@
-package io.hahnsoftware.emp.ui;
+package io.hahnsoftware.emp.ui.form;
 
+import io.hahnsoftware.emp.ui.StyleConstants;
+import io.hahnsoftware.emp.ui.button.MButton;
 import io.hahnsoftware.emp.ui.date.DatePickerComponent;
 import net.miginfocom.swing.MigLayout;
 import io.hahnsoftware.emp.dto.EmployeeDAO;
@@ -7,10 +9,7 @@ import io.hahnsoftware.emp.dto.DepartmentDAO;
 import io.hahnsoftware.emp.model.Employee;
 import io.hahnsoftware.emp.model.Department;
 import io.hahnsoftware.emp.model.EmploymentStatus;
-import net.sourceforge.jdatepicker.JDatePanel;
-import net.sourceforge.jdatepicker.impl.JDatePanelImpl;
 import net.sourceforge.jdatepicker.impl.JDatePickerImpl;
-import net.sourceforge.jdatepicker.impl.UtilDateModel;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -25,7 +24,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
-import java.util.Properties;
+
 public class EmployeeFormPanel extends JPanel implements StyleConstants {
     private final JTextField employeeIdField;
     private final JTextField fullNameField;
@@ -35,9 +34,6 @@ public class EmployeeFormPanel extends JPanel implements StyleConstants {
     private final JTextField jobTitleField;
     private final JComboBox<Department> departmentCombo;
     private final JComboBox<EmploymentStatus> statusCombo;
-    private final JButton saveButton;
-    private final JButton cancelButton;
-
     private final EmployeeDAO employeeDAO;
     private final DepartmentDAO departmentDAO;
     private final Runnable onSaveComplete;
@@ -126,8 +122,11 @@ public class EmployeeFormPanel extends JPanel implements StyleConstants {
         employmentInfoPanel.add(statusCombo, "growx");
 
         // Style and create buttons
-        saveButton = createStyledButton("Save", MAIN_COLOR);
-        cancelButton = createStyledButton("Cancel", NEUTRAL_MEDIUM);
+        MButton saveButton = new MButton("Save", MButton.ButtonType.PRIMARY)
+                .withSize(150, 38)
+                .withAnimation(true);
+        MButton cancelButton = new MButton("Cancel", MButton.ButtonType.SECONDARY).withSize(80, 30);
+
 
         // Button panel with modern styling
         JPanel buttonPanel = new JPanel(new MigLayout("insets 20", "push[]10[]"));
