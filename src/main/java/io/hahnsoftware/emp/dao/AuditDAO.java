@@ -1,4 +1,4 @@
-package io.hahnsoftware.emp.dto;
+package io.hahnsoftware.emp.dao;
 
 
 import io.hahnsoftware.emp.model.AuditLog;

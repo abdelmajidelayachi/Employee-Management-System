@@ -1,9 +1,7 @@
-package io.hahnsoftware.emp.dto;
+package io.hahnsoftware.emp.dao;
 
 import io.hahnsoftware.emp.model.Department;
 import io.hahnsoftware.emp.model.Employee;
-import io.hahnsoftware.emp.model.User;
-import io.hahnsoftware.emp.model.UserRole;
 import io.hahnsoftware.emp.util.DatabaseConnection;
 
 import java.sql.*;

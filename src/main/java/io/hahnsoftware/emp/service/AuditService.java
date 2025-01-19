@@ -1,7 +1,7 @@
 package io.hahnsoftware.emp.service;
 
-import io.hahnsoftware.emp.dto.AuditDAO;
-import io.hahnsoftware.emp.dto.EmployeeDAO;
+import io.hahnsoftware.emp.dao.AuditDAO;
+import io.hahnsoftware.emp.dao.EmployeeDAO;
 import io.hahnsoftware.emp.model.AuditLog;
 import io.hahnsoftware.emp.model.Employee;
 import org.springframework.stereotype.Service;

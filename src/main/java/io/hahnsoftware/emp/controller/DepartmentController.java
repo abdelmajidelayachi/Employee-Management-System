@@ -1,5 +1,6 @@
 package io.hahnsoftware.emp.controller;
 
+import io.hahnsoftware.emp.dto.DepartmentDTO;
 import io.hahnsoftware.emp.model.Department;
 import io.hahnsoftware.emp.service.DepartmentService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -8,6 +9,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +21,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/departments")
 @Tag(name = "Departments", description = "Department management APIs")
+@SecurityRequirement(name = "bearer-jwt")
 public class DepartmentController {
 
     private final DepartmentService departmentService;
@@ -37,7 +40,7 @@ public class DepartmentController {
     })
     @PostMapping
     public ResponseEntity<Department> createDepartment(
-            @RequestBody Department department) {
+            @RequestBody DepartmentDTO department) {
         try {
             Department createdDepartment = departmentService.createDepartment(department);
             return new ResponseEntity<>(createdDepartment, HttpStatus.CREATED);
@@ -98,10 +101,9 @@ public class DepartmentController {
     @PutMapping("/{id}")
     public ResponseEntity<Department> updateDepartment(
             @Parameter(description = "Department ID") @PathVariable Long id,
-            @RequestBody Department department) {
+            @RequestBody DepartmentDTO department) {
         try {
-            department.setId(id);
-            return ResponseEntity.ok(departmentService.updateDepartment(department));
+            return ResponseEntity.ok(departmentService.updateDepartment(department, id));
         } catch (SQLException e) {
             throw new RuntimeException("Failed to update department", e);
         }

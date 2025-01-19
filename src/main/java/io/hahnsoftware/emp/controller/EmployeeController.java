@@ -1,10 +1,12 @@
 package io.hahnsoftware.emp.controller;
 
+import io.hahnsoftware.emp.dto.EmployeeDto;
 import io.hahnsoftware.emp.model.Employee;
 import io.hahnsoftware.emp.model.SearchCriteria;
 import io.hahnsoftware.emp.service.EmployeeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,7 +16,8 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/employees")
-@Tag(name = "Employees", description = "Employee management APIs")
+@Tag(name = "Employee Management", description = "APIs for managing employees")
+@SecurityRequirement(name = "bearer-jwt")
 public class EmployeeController {
 
     private final EmployeeService employeeService;
@@ -26,7 +29,7 @@ public class EmployeeController {
     @Operation(summary = "Create a new employee")
     @PostMapping
     public ResponseEntity<Employee> createEmployee(
-            @RequestBody Employee employee,
+            @RequestBody EmployeeDto employee,
             @RequestParam String password) {
         try {
             return ResponseEntity.ok(employeeService.createEmployee(employee, password));
@@ -80,10 +83,9 @@ public class EmployeeController {
     @PutMapping("/{id}")
     public ResponseEntity<Employee> updateEmployee(
             @PathVariable Long id,
-            @RequestBody Employee employee) {
+            @RequestBody EmployeeDto employee) {
         try {
-            employee.setId(id);
-            return ResponseEntity.ok(employeeService.updateEmployee(employee));
+            return ResponseEntity.ok(employeeService.updateEmployee(id, employee));
         } catch (SQLException e) {
             throw new RuntimeException("Failed to update employee", e);
         }

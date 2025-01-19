@@ -1,7 +1,7 @@
 package io.hahnsoftware.emp.ui.form;
 
-import io.hahnsoftware.emp.dto.DepartmentDAO;
-import io.hahnsoftware.emp.dto.EmployeeDAO;
+import io.hahnsoftware.emp.dao.DepartmentDAO;
+import io.hahnsoftware.emp.dao.EmployeeDAO;
 import io.hahnsoftware.emp.model.Department;
 import io.hahnsoftware.emp.model.Employee;
 import io.hahnsoftware.emp.ui.StyleConstants;

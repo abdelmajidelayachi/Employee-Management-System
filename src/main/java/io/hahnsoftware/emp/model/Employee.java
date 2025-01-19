@@ -17,6 +17,9 @@ public class Employee {
     private String phone;
     private String address;
 
+   //is the currently logged-in user in the same department as the employee and a manager
+    private boolean isCurrentUserManager = false;
+
     public Long getId() {
         return id;
     }
@@ -96,6 +99,14 @@ public class Employee {
     public void setAddress(String address) {
         this.address = address;
     }
+    public boolean isCurrentUserManager() {
+        return isCurrentUserManager;
+    }
+
+    public void setCurrentUserManager(boolean currentUserManager) {
+        isCurrentUserManager = currentUserManager;
+    }
+
 
     public String getUsername() {
         return username;

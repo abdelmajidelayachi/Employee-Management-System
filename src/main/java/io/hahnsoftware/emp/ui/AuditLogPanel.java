@@ -1,8 +1,8 @@
 package io.hahnsoftware.emp.ui;
 
-import io.hahnsoftware.emp.dto.EmployeeDAO;
+import io.hahnsoftware.emp.dao.EmployeeDAO;
 import net.miginfocom.swing.MigLayout;
-import io.hahnsoftware.emp.dto.AuditDAO;
+import io.hahnsoftware.emp.dao.AuditDAO;
 import io.hahnsoftware.emp.model.AuditLog;
 import net.sourceforge.jdatepicker.impl.JDatePanelImpl;
 import net.sourceforge.jdatepicker.impl.JDatePickerImpl;

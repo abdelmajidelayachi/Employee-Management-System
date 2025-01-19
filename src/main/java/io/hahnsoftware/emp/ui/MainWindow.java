@@ -1,8 +1,8 @@
 package io.hahnsoftware.emp.ui;
 
-import io.hahnsoftware.emp.dto.AuditDAO;
-import io.hahnsoftware.emp.dto.DepartmentDAO;
-import io.hahnsoftware.emp.dto.EmployeeDAO;
+import io.hahnsoftware.emp.dao.AuditDAO;
+import io.hahnsoftware.emp.dao.DepartmentDAO;
+import io.hahnsoftware.emp.dao.EmployeeDAO;
 import io.hahnsoftware.emp.model.Department;
 import io.hahnsoftware.emp.model.Employee;
 import io.hahnsoftware.emp.model.EmploymentStatus;
@@ -17,47 +17,62 @@ public class MainWindow extends JFrame {
     private final CardLayout cardLayout;
     private final JPanel mainPanel;
     private final LoginPanel loginPanel;
-    private final DashboardPanel dashboardPanel;
+    private DashboardPanel dashboardPanel; // Remove final modifier
 
-    
     public MainWindow() {
         setTitle("Employee Management System");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setPreferredSize(new Dimension(1024, 768));
-        
+
         // Initialize layouts
         cardLayout = new CardLayout();
         mainPanel = new JPanel(cardLayout);
-        
-        // Initialize panels
+
+        // Initialize only login panel
         loginPanel = new LoginPanel(this::onLoginSuccess);
-        dashboardPanel = new DashboardPanel(this::onLogout);
-        
-        // Add panels to card layout
+
+        // Add only login panel to card layout initially
         mainPanel.add(loginPanel, "login");
-        mainPanel.add(dashboardPanel, "dashboard");
-        
+
         // Show login panel by default
         cardLayout.show(mainPanel, "login");
-        
+
         // Add to frame
         add(mainPanel);
-        
+
         // Pack and center
         pack();
         setLocationRelativeTo(null);
     }
 
     private void onLoginSuccess(Employee employee) {
-        dashboardPanel.setCurrentUser(employee);
+        // Initialize dashboard panel only after successful login
         AuditDAO.setActionUser(employee);
+        if (dashboardPanel == null) {
+            dashboardPanel = new DashboardPanel(this::onLogout);
+            dashboardPanel.setCurrentUser();
+            mainPanel.add(dashboardPanel, "dashboard");
+        }
+
         cardLayout.show(mainPanel, "dashboard");
     }
 
     public void onLogout() {
-
         AuditDAO.setActionUser(null);
+
+        // Remove and cleanup dashboard
+        if (dashboardPanel != null) {
+            mainPanel.remove(dashboardPanel);
+            dashboardPanel = null;
+        }
+
         cardLayout.show(mainPanel, "login");
+
+        // Clear login form if needed
+        loginPanel.clearForm();
+
+        // Trigger garbage collection for cleanup (optional)
+        System.gc();
     }
 
     public static void main(String[] args) {

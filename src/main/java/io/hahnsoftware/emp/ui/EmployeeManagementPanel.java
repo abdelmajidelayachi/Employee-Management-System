@@ -1,9 +1,11 @@
 package io.hahnsoftware.emp.ui;
 
+import io.hahnsoftware.emp.dao.AuditDAO;
+import io.hahnsoftware.emp.model.UserRole;
 import io.hahnsoftware.emp.ui.button.MButton;
 import io.hahnsoftware.emp.ui.form.EmployeeFormPanel;
 import net.miginfocom.swing.MigLayout;
-import io.hahnsoftware.emp.dto.EmployeeDAO;
+import io.hahnsoftware.emp.dao.EmployeeDAO;
 import io.hahnsoftware.emp.model.Employee;
 import io.hahnsoftware.emp.model.EmploymentStatus;
 import net.sourceforge.jdatepicker.impl.JDatePickerImpl;
@@ -225,7 +227,9 @@ public class EmployeeManagementPanel extends JPanel implements StyleConstants{
         MButton addButton = new MButton("+ Add Employee", MButton.ButtonType.PRIMARY)
                 .withSize(150, 38)
                 .withAnimation(true);
+        addButton.setVisible(PermissionUtils.canAccessAll() || PermissionUtils.canAccessAllEmployee());
         addButton.addActionListener(e -> onAddNew.run());
+
 
         // Add components with proper spacing
         filterPanel.add(searchPanel, "growx");
@@ -378,15 +382,31 @@ public class EmployeeManagementPanel extends JPanel implements StyleConstants{
     private void applyFilters() {
         String searchText = searchField.getText().toLowerCase();
         EmploymentStatus selectedStatus = (EmploymentStatus) statusFilter.getSelectedItem();
+        Employee currentUser = AuditDAO.getActionUser();
 
         List<Employee> filteredEmployees = allEmployees.stream()
                 .filter(employee -> {
+                    // First check permissions
+                    if (PermissionUtils.canAccessAll()) {
+                        return true; // Admin can see all
+                    } else if (currentUser.getRole() == UserRole.HR_PERSONNEL) {
+                        return true; // HR can see all
+                    } else if (currentUser.getRole() == UserRole.MANAGER) {
+                        // Managers can only see employees in their department
+                        return employee.getDepartment().getId().equals(currentUser.getDepartment().getId());
+                    } else {
+                        // Regular employees can only see themselves
+                        return employee.getId().equals(currentUser.getId());
+                    }
+                })
+                .filter(employee -> {
+                    // Then apply search filter if text exists
                     if (!searchText.isEmpty()) {
                         return employee.getFullName().toLowerCase().contains(searchText) ||
                                 employee.getEmployeeId().toLowerCase().contains(searchText) ||
-                                employee.getDepartment().getName().toLowerCase().contains(searchText)||
-                                employee.getRole().name().toLowerCase().contains(searchText)||
-                                employee.getUsername().toLowerCase().contains(searchText)||
+                                employee.getDepartment().getName().toLowerCase().contains(searchText) ||
+                                employee.getRole().name().toLowerCase().contains(searchText) ||
+                                employee.getUsername().toLowerCase().contains(searchText) ||
                                 employee.getJobTitle().toLowerCase().contains(searchText);
                     }
                     return true;
@@ -553,18 +573,53 @@ public class EmployeeManagementPanel extends JPanel implements StyleConstants{
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value,
                                                        boolean isSelected, boolean hasFocus, int row, int column) {
-            // Set background based on selection and stripe pattern
             setBackground(isSelected ? table.getSelectionBackground() :
                     (row % 2 == 0 ? BG_PRIMARY : BG_SECONDARY));
 
-            // Always show buttons
-            editButton.setVisible(true);
-            deleteButton.setVisible(true);
-
-            // Make panel opaque to handle background properly
+            // Get employee from the current row and check permissions
+            String employeeId = (String) table.getValueAt(row, 0);
+            updateButtonVisibility(employeeId);
             setOpaque(true);
-
             return this;
+        }
+
+        private void updateButtonVisibility(String employeeId) {
+            try {
+                Employee employee = employeeDAO.findByEmployeeId(employeeId);
+                Employee currentUser = AuditDAO.getActionUser(); // Get current user
+
+                boolean canEdit = false;
+                boolean canDelete = false;
+
+                if (employee != null && currentUser != null) {
+                    // Admin can do everything
+                    if (currentUser.getRole() == UserRole.ADMINISTRATOR) {
+                        canEdit = true;
+                        canDelete = true;
+                    }
+                    // HR personnel can edit but not delete
+                    else if (currentUser.getRole() == UserRole.HR_PERSONNEL) {
+                        canEdit = true;
+                        canDelete=true;
+                    }
+                    // Managers can edit their own employees
+                    else if (currentUser.getRole() == UserRole.MANAGER) {
+                        canEdit = employee.getDepartment().getId().equals(currentUser.getDepartment().getId());
+                    }
+                    // Regular employees can only see their own info
+                    else {
+                        canEdit = employee.getId().equals(currentUser.getId());
+                    }
+                }
+
+                editButton.setVisible(canEdit);
+                deleteButton.setVisible(canDelete);
+
+            } catch (SQLException e) {
+                // Handle error - hide buttons in case of error
+                editButton.setVisible(false);
+                deleteButton.setVisible(false);
+            }
         }
     }
     private class ButtonEditor extends DefaultCellEditor {
@@ -589,14 +644,14 @@ public class EmployeeManagementPanel extends JPanel implements StyleConstants{
 
             editButton.addActionListener(e -> {
                 fireEditingStopped();
-                if (employeeId != null) {
+                if (employeeId != null && canEditEmployee(employeeId)) {
                     editEmployee(employeeId);
                 }
             });
 
             deleteButton.addActionListener(e -> {
                 fireEditingStopped();
-                if (employeeId != null) {
+                if (employeeId != null && canDeleteEmployee(employeeId)) {
                     deleteEmployee(employeeId);
                 }
             });
@@ -605,12 +660,46 @@ public class EmployeeManagementPanel extends JPanel implements StyleConstants{
             panel.add(deleteButton);
         }
 
+        private boolean canEditEmployee(String employeeId) {
+            try {
+                Employee employee = employeeDAO.findByEmployeeId(employeeId);
+                Employee currentUser = AuditDAO.getActionUser();
+
+                if (employee != null && currentUser != null) {
+                    if (currentUser.getRole() == UserRole.ADMINISTRATOR) {
+                        return true;
+                    }
+                    if (currentUser.getRole() == UserRole.HR_PERSONNEL) {
+                        return true;
+                    }
+                    if (currentUser.getRole() == UserRole.MANAGER) {
+                        return employee.getDepartment().getId().equals(currentUser.getDepartment().getId());
+                    }
+                    return employee.getId().equals(currentUser.getId());
+                }
+            } catch (SQLException e) {
+                // Handle error
+            }
+            return false;
+        }
+
+        private boolean canDeleteEmployee(String employeeId) {
+            Employee currentUser = AuditDAO.getActionUser();
+            return currentUser != null && currentUser.getRole() == UserRole.ADMINISTRATOR;
+        }
+
         @Override
         public Component getTableCellEditorComponent(JTable table, Object value,
                                                      boolean isSelected, int row, int column) {
             employeeId = (String) table.getValueAt(row, 0);
+            updateButtonVisibility(employeeId);
             panel.setBackground(table.getSelectionBackground());
             return panel;
+        }
+
+        private void updateButtonVisibility(String employeeId) {
+            editButton.setVisible(canEditEmployee(employeeId));
+            deleteButton.setVisible(canDeleteEmployee(employeeId));
         }
 
         @Override

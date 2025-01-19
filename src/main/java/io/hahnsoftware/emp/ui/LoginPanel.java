@@ -1,6 +1,6 @@
 package io.hahnsoftware.emp.ui;
 
-import io.hahnsoftware.emp.dto.EmployeeDAO;
+import io.hahnsoftware.emp.dao.EmployeeDAO;
 import io.hahnsoftware.emp.model.Employee;
 import net.miginfocom.swing.MigLayout;
 
@@ -231,7 +231,7 @@ public class LoginPanel extends JPanel {
                 JOptionPane.ERROR_MESSAGE);
     }
 
-    private void clearForm() {
+    void clearForm() {
         usernameField.setText("");
         passwordField.setText("");
         usernameField.requestFocus();

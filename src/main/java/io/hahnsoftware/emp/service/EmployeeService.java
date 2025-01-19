@@ -1,8 +1,10 @@
 package io.hahnsoftware.emp.service;
 
+import io.hahnsoftware.emp.dao.DepartmentDAO;
+import io.hahnsoftware.emp.dto.EmployeeDto;
 import io.hahnsoftware.emp.model.Employee;
 import io.hahnsoftware.emp.model.SearchCriteria;
-import io.hahnsoftware.emp.dto.EmployeeDAO;
+import io.hahnsoftware.emp.dao.EmployeeDAO;
 import org.springframework.stereotype.Service;
 
 import java.sql.SQLException;
@@ -11,18 +13,22 @@ import java.util.List;
 @Service
 public class EmployeeService {
     private final EmployeeDAO employeeDAO;
+    private final DepartmentDAO departmentDAO;
 
     public EmployeeService() throws SQLException {
         this.employeeDAO = new EmployeeDAO();
+        this.departmentDAO = new DepartmentDAO(employeeDAO);
     }
 
-    public Employee createEmployee(Employee employee, String password) throws SQLException {
-        List<String> validationErrors = employeeDAO.validateEmployee(employee);
+    public Employee createEmployee(EmployeeDto dto, String password) throws SQLException {
+        List<String> validationErrors = dto.validateEmployeeDto();
         if (!validationErrors.isEmpty()) {
             throw new IllegalArgumentException("Validation errors: " + String.join(", ", validationErrors));
         }
+        Employee employee = dto.convertToEntity();
         return employeeDAO.create(employee, password, true);
     }
+
 
     public Employee getEmployeeById(Long id) throws SQLException {
         Employee employee = employeeDAO.findById(id);
@@ -52,17 +58,23 @@ public class EmployeeService {
         return employeeDAO.search(criteria);
     }
 
-    public Employee updateEmployee(Employee employee) throws SQLException {
-        List<String> validationErrors = employeeDAO.validateEmployee(employee);
+
+    public Employee updateEmployee(Long id, EmployeeDto dto) throws SQLException {
+        List<String> validationErrors = dto.validateEmployeeDto();
         if (!validationErrors.isEmpty()) {
             throw new IllegalArgumentException("Validation errors: " + String.join(", ", validationErrors));
         }
+        Employee employee = dto.convertToEntity();
+        employee.setId(id);
         return employeeDAO.update(employee);
     }
 
-    public void updatePassword(Long employeeId, String newPassword) throws SQLException {
-        Employee employee = getEmployeeById(employeeId);
-        employeeDAO.updatePassword(employee, newPassword);
+    public void updatePassword(Long id, String password) throws SQLException {
+        Employee employee = employeeDAO.findById(id);
+        if (employee == null) {
+            throw new RuntimeException("Employee not found with employee id: " + id);
+        }
+        employeeDAO.updatePassword(employee, password);
     }
 
     public void deleteEmployee(String employeeId) throws SQLException {

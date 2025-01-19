@@ -1,6 +1,7 @@
-package io.hahnsoftware.emp.dto;
+package io.hahnsoftware.emp.dao;
 
 
+import io.hahnsoftware.emp.dto.EmployeeDto;
 import io.hahnsoftware.emp.model.*;
 import io.hahnsoftware.emp.util.DatabaseConnection;
 import org.mindrot.jbcrypt.BCrypt;
@@ -14,6 +15,7 @@ public class EmployeeDAO {
     private final Connection connection;
     private final DepartmentDAO departmentDAO;
     private final AuditDAO auditDAO;
+
 
     public EmployeeDAO() throws SQLException {
         this.connection = DatabaseConnection.getConnection();
@@ -251,6 +253,11 @@ public class EmployeeDAO {
         Long departmentId = rs.getLong("department_id");
         if (!rs.wasNull()) {
             employee.setDepartment(departmentDAO.findById(departmentId));
+            Employee manager = employee.getDepartment().getManager();
+            // check if the current is manager
+            if (AuditDAO.getActionUser() != null && manager != null && manager.getId() == AuditDAO.getActionUser().getId()) {
+                employee.setCurrentUserManager(true);
+            }
         }
 
         return employee;
@@ -400,6 +407,7 @@ public class EmployeeDAO {
         }
     }
 
+
     public List<String> validateEmployee(Employee employee) {
         List<String> errors = new ArrayList<>();
 
@@ -475,13 +483,13 @@ public class EmployeeDAO {
         return errors;
     }
 
-    private boolean isValidEmail(String email) {
+    public static boolean isValidEmail(String email) {
         String emailRegex = "^[A-Za-z0-9+_.-]+@(.+)$";
         return email.matches(emailRegex);
     }
 
     // validate all the formate of of phone
-    private boolean isValidPhone(String phone) {
+    public static boolean isValidPhone(String phone) {
         String phoneRegex = "^[\\d\\s\\(\\)\\-]+$";
         return phone.matches(phoneRegex) &&
                 phone.replaceAll("[^\\d]", "").length() >= 10;

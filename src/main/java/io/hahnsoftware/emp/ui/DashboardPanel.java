@@ -1,5 +1,6 @@
 package io.hahnsoftware.emp.ui;
 
+import io.hahnsoftware.emp.dao.AuditDAO;
 import io.hahnsoftware.emp.model.Employee;
 import io.hahnsoftware.emp.ui.form.EmployeeFormPanel;
 import net.miginfocom.swing.MigLayout;
@@ -24,7 +25,6 @@ public class DashboardPanel extends JPanel {
 
     private final JPanel contentPanel;
     private final CardLayout contentLayout;
-    private static Employee currentUser;
     private String currentPanel = "";
     private final Map<String, JButton> menuButtons = new HashMap<>();
 
@@ -116,7 +116,7 @@ public class DashboardPanel extends JPanel {
         headerPanel.add(titlePanel, "cell 0 0");
 
         // User info section
-        if (currentUser != null) {
+        if (AuditDAO.getActionUser() != null) {
             JPanel userPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
             userPanel.setOpaque(false);
 
@@ -124,7 +124,7 @@ public class DashboardPanel extends JPanel {
             userIcon.setFont(new Font("Segoe UI", Font.PLAIN, 18));
             userIcon.setForeground(Color.WHITE);
 
-            JLabel userLabel = new JLabel(currentUser.getUsername());
+            JLabel userLabel = new JLabel(AuditDAO.getActionUser().getUsername());
             userLabel.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 14));
             userLabel.setForeground(Color.WHITE);
 
@@ -140,12 +140,20 @@ public class DashboardPanel extends JPanel {
         sidebar.setBackground(SIDEBAR_COLOR);
         sidebar.setForeground(MAIN_DARK);
 
-        // Menu buttons
-        addMenuButton(sidebar, "Employees", "👥", "employeeList");
-        addMenuButton(sidebar, "Departments", "🏢", "departmentManagement");
-        addMenuButton(sidebar, "Audit Log", "📋", "auditLog");
+        // Only add buttons if user has permission
+        if (PermissionUtils.canAccessAllEmployee() || PermissionUtils.canViewEmployeePanel()) {
+            addMenuButton(sidebar, "Employees", "👥", "employeeList");
+        }
 
-        // Logout button with special styling
+        if (PermissionUtils.canAccessAll()) {
+            addMenuButton(sidebar, "Departments", "🏢", "departmentManagement");
+        }
+
+        if (PermissionUtils.canViewLogAudit()) {
+            addMenuButton(sidebar, "Audit Log", "📋", "auditLog");
+        }
+
+        // Logout button is always visible
         JButton logoutBtn = createModernMenuButton("Logout", "🚪", onLogout);
         logoutBtn.setBackground(new Color(231, 76, 60));
         logoutBtn.setForeground(Color.WHITE);  // Set initial text color
@@ -217,6 +225,16 @@ public class DashboardPanel extends JPanel {
     }
 
     private void showPanel(String panelName) {
+        // First check permissions
+        boolean hasAccess = checkPanelAccess(panelName);
+        if (!hasAccess) {
+            JOptionPane.showMessageDialog(this,
+                    "You don't have permission to access this feature.",
+                    "Access Denied",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
         // Reset previous button style
         if (!currentPanel.isEmpty() && menuButtons.containsKey(currentPanel)) {
             JButton prevButton = menuButtons.get(currentPanel);
@@ -241,8 +259,21 @@ public class DashboardPanel extends JPanel {
         }
     }
 
-    public void setCurrentUser(Employee employee) {
-        this.currentUser = employee;
+    private boolean checkPanelAccess(String panelName) {
+        if (AuditDAO.getActionUser() == null) return false;
+
+        return switch (panelName) {
+            case "employeeList" -> PermissionUtils.canAccessAllEmployee() || PermissionUtils.canViewEmployeePanel();
+            case "employeeForm" -> PermissionUtils.canAccessAllEmployee();
+            case "departmentManagement" -> PermissionUtils.canAccessAll();
+            case "auditLog" -> PermissionUtils.canViewLogAudit();
+            default -> false;
+        };
+    }
+
+
+
+    public void setCurrentUser() {
         updateAccess();
         // Refresh UI to show user info
         removeAll();
@@ -269,11 +300,9 @@ public class DashboardPanel extends JPanel {
     }
 
     private void updateAccess() {
-        boolean isAdmin = currentUser.getRole() == UserRole.ADMINISTRATOR;
         menuButtons.forEach((key, button) -> {
-            switch (key) {
-                case "userManagement", "departmentManagement", "auditLog" -> button.setVisible(isAdmin);
-            }
+            boolean hasAccess = checkPanelAccess(key);
+            button.setVisible(hasAccess);
         });
     }
 
