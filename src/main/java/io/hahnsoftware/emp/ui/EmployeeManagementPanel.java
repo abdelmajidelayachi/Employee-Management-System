@@ -685,7 +685,7 @@ public class EmployeeManagementPanel extends JPanel implements StyleConstants{
 
         private boolean canDeleteEmployee(String employeeId) {
             Employee currentUser = AuditDAO.getActionUser();
-            return currentUser != null && currentUser.getRole() == UserRole.ADMINISTRATOR;
+            return currentUser != null && (currentUser.getRole() == UserRole.ADMINISTRATOR || currentUser.getRole() == UserRole.HR_PERSONNEL);
         }
 
         @Override

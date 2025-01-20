@@ -373,9 +373,12 @@ public class EmployeeDAO {
             throw new SQLException("Employee not found for deletion.");
         }
 
-        String sql = "DELETE FROM employees WHERE employee_id = ?";
+        String deleteEmployeeSql = "DELETE FROM employees WHERE employee_id = ?";
+        String deleteAuditLogsSql = "DELETE FROM audit_log WHERE employee_id = ?";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (PreparedStatement deleteEmployeeStmt = connection.prepareStatement(deleteEmployeeSql);
+             PreparedStatement deleteAuditLogsStmt = connection.prepareStatement(deleteAuditLogsSql)) {
+
             // Build deletion details
             StringBuilder changes = new StringBuilder("Deleted employee details:\n")
                     .append("Employee ID: ").append(employee.getEmployeeId()).append("\n")
@@ -384,12 +387,17 @@ public class EmployeeDAO {
                     .append("Department: ").append(employee.getDepartment().getName()).append("\n")
                     .append("Status: ").append(employee.getStatus().name()).append("\n");
 
-            stmt.setString(1, id);
-
-            int rowsAffected = stmt.executeUpdate();
+            // Delete the employee
+            deleteEmployeeStmt.setString(1, id);
+            int rowsAffected = deleteEmployeeStmt.executeUpdate();
             if (rowsAffected == 0) {
                 throw new SQLException("Delete failed, no rows affected.");
             }
+
+            // Delete the associated audit logs
+
+            deleteAuditLogsStmt.setLong(1, employee.getId());
+            deleteAuditLogsStmt.executeUpdate();
 
             connection.commit();
 

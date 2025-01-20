@@ -430,19 +430,7 @@ public class EmployeeFormPanel extends JPanel implements StyleConstants {
             employee.setUsername(username);
             employee.setRole(userRole);
 
-            // Set hire date only for new employees
-            if (isNewEmployee) {
-                employeeDAO.create(employee, password, true);
-                showSuccessAndClose("Employee created successfully");
-            } else {
-                if (isPasswordChangeRequested) {
-                    // Use a method that allows password change
-                    employeeDAO.updatePassword(employee, password);
-                } else {
-                    employeeDAO.update(employee);
-                }
-                showSuccessAndClose("Employee updated successfully");
-            }
+
             // Perform validation
             List<String> validationErrors = validateEmployee(employee);
             if (!validationErrors.isEmpty()) {
@@ -458,7 +446,12 @@ public class EmployeeFormPanel extends JPanel implements StyleConstants {
                 employeeDAO.create(employee, password, true);
                 showSuccessAndClose("Employee created successfully");
             } else {
-                employeeDAO.update(employee);
+                if (isPasswordChangeRequested) {
+                    // Use a method that allows password change
+                    employeeDAO.updatePassword(employee, password);
+                } else {
+                    employeeDAO.update(employee);
+                }
                 showSuccessAndClose("Employee updated successfully");
             }
         } catch (Exception e) {
