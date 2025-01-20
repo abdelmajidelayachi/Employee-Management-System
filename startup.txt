@@ -1,0 +1,8 @@
+docker build -t employee-management-api .
+docker run -d --name employee-api \
+  -p 8080:8080 \
+  -e DB_URL=jdbc:oracle:thin:@host.docker.internal:1521:XE \
+  -e DB_USER=system \
+  -e DB_PASSWORD=admin123 \
+  -e JWT_SECRET=77A9A1C84825BCC945BC1682FA263 \
+  employee-management-api
