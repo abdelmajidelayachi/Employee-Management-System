@@ -1,0 +1,430 @@
+{
+	"info": {
+		"_postman_id": "bc24f75c-354c-4414-98d2-147662e47ee6",
+		"name": "Employee API Testing",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "22522396"
+	},
+	"item": [
+		{
+			"name": "Audit Logs",
+			"item": [
+				{
+					"name": "audit Logs",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTczNzMxOTMxNSwiZXhwIjoxNzM3NDA1NzE1fQ.yt55vZBVaV06HQIxg9fPmmcZH14u6Su7Va9_OmmZwAs8NQ7bL9d4ypF6v4dKGaTW",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{Url}}/api/audit/logs?entityType=EMPLOYEE&action=CREATE&startDate=2025-01-17&endDate=2025-01-18",
+							"host": [
+								"{{Url}}"
+							],
+							"path": [
+								"api",
+								"audit",
+								"logs"
+							],
+							"query": [
+								{
+									"key": "entityType",
+									"value": "EMPLOYEE"
+								},
+								{
+									"key": "action",
+									"value": "CREATE"
+								},
+								{
+									"key": "startDate",
+									"value": "2025-01-17"
+								},
+								{
+									"key": "endDate",
+									"value": "2025-01-18"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "employee",
+			"item": [
+				{
+					"name": "all employee",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTczNzMxOTMxNSwiZXhwIjoxNzM3NDA1NzE1fQ.yt55vZBVaV06HQIxg9fPmmcZH14u6Su7Va9_OmmZwAs8NQ7bL9d4ypF6v4dKGaTW",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{Url}}/api/employees",
+							"host": [
+								"{{Url}}"
+							],
+							"path": [
+								"api",
+								"employees"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete employee",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTczNzMxOTMxNSwiZXhwIjoxNzM3NDA1NzE1fQ.yt55vZBVaV06HQIxg9fPmmcZH14u6Su7Va9_OmmZwAs8NQ7bL9d4ypF6v4dKGaTW",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{Url}}/api/employees/57",
+							"host": [
+								"{{Url}}"
+							],
+							"path": [
+								"api",
+								"employees",
+								"57"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "all manager",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTczNzMxOTMxNSwiZXhwIjoxNzM3NDA1NzE1fQ.yt55vZBVaV06HQIxg9fPmmcZH14u6Su7Va9_OmmZwAs8NQ7bL9d4ypF6v4dKGaTW",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{Url}}/api/employees",
+							"host": [
+								"{{Url}}"
+							],
+							"path": [
+								"api",
+								"employees"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "edit employee",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTczNzMxOTMxNSwiZXhwIjoxNzM3NDA1NzE1fQ.yt55vZBVaV06HQIxg9fPmmcZH14u6Su7Va9_OmmZwAs8NQ7bL9d4ypF6v4dKGaTW",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"employeeId\": \"0313\",\n  \"fullName\": \"Abdelmajid EL AYACHI\",\n  \"jobTitle\": \"Java devoloper\",\n  \"departmentId\": 25,\n  \"hireDate\": \"2025-01-19\",\n  \"username\": \"Abdelmajid\",\n  \"role\": \"EMPLOYEE\",\n  \"status\": \"ACTIVE\",\n  \"email\": \"emai.com\",\n  \"phone\": \"\",\n  \"address\": \"\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{Url}}/api/employees/56",
+							"host": [
+								"{{Url}}"
+							],
+							"path": [
+								"api",
+								"employees",
+								"56"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "add employee",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTczNzMxOTMxNSwiZXhwIjoxNzM3NDA1NzE1fQ.yt55vZBVaV06HQIxg9fPmmcZH14u6Su7Va9_OmmZwAs8NQ7bL9d4ypF6v4dKGaTW",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"employeeId\": \"03132\",\n  \"fullName\": \"Abdelmajid EL AYACHI\",\n  \"jobTitle\": \"Java devoloper\",\n  \"departmentId\": 25,\n  \"hireDate\": \"2025-01-19\",\n  \"username\": \"Abdelmajid1\",\n  \"role\": \"EMPLOYEE\",\n  \"status\": \"ACTIVE\",\n  \"email\": \"emai2l@gmail.com\",\n  \"phone\": \"\",\n  \"address\": \"\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{Url}}/api/employees?password=password",
+							"host": [
+								"{{Url}}"
+							],
+							"path": [
+								"api",
+								"employees"
+							],
+							"query": [
+								{
+									"key": "password",
+									"value": "password"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "department",
+			"item": [
+				{
+					"name": "all Department",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTczNzMxOTMxNSwiZXhwIjoxNzM3NDA1NzE1fQ.yt55vZBVaV06HQIxg9fPmmcZH14u6Su7Va9_OmmZwAs8NQ7bL9d4ypF6v4dKGaTW",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{Url}}/api/employees",
+							"host": [
+								"{{Url}}"
+							],
+							"path": [
+								"api",
+								"employees"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "add department",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTczNzMxOTMxNSwiZXhwIjoxNzM3NDA1NzE1fQ.yt55vZBVaV06HQIxg9fPmmcZH14u6Su7Va9_OmmZwAs8NQ7bL9d4ypF6v4dKGaTW",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"HR department\",\n  \"managerId\":7\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{Url}}/api/departments",
+							"host": [
+								"{{Url}}"
+							],
+							"path": [
+								"api",
+								"departments"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update department",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTczNzMxOTMxNSwiZXhwIjoxNzM3NDA1NzE1fQ.yt55vZBVaV06HQIxg9fPmmcZH14u6Su7Va9_OmmZwAs8NQ7bL9d4ypF6v4dKGaTW",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"HR department\",\n  \"managerId\":7\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{Url}}/api/departments/24",
+							"host": [
+								"{{Url}}"
+							],
+							"path": [
+								"api",
+								"departments",
+								"24"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete department",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTczNzMxOTMxNSwiZXhwIjoxNzM3NDA1NzE1fQ.yt55vZBVaV06HQIxg9fPmmcZH14u6Su7Va9_OmmZwAs8NQ7bL9d4ypF6v4dKGaTW",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"HR department\",\n  \"managerId\":7\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{Url}}/api/departments/24",
+							"host": [
+								"{{Url}}"
+							],
+							"path": [
+								"api",
+								"departments",
+								"24"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Login",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"admin\",\n    \"password\": \"admin\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/api/auth/login?Authorization",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"auth",
+						"login"
+					],
+					"query": [
+						{
+							"key": "Authorization",
+							"value": null
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "Url",
+			"value": "localhost:8080"
+		}
+	]
+}
